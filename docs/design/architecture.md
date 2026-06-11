@@ -2,7 +2,6 @@
 
 > Version 1.0
 > Status: Approved
-> Based on: AGENTS.md, docs/requirements.md
 
 ---
 
