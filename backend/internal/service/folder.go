@@ -1,0 +1,183 @@
+package service
+
+import (
+	"context"
+	"errors"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/nuonuo/nuonetdisk/internal/model"
+	"github.com/nuonuo/nuonetdisk/internal/repository"
+	"github.com/nuonuo/nuonetdisk/internal/storage"
+)
+
+type FolderService struct {
+	folderRepo *repository.FolderRepository
+	fileRepo   *repository.FileRepository
+	storage    storage.FileStorage
+}
+
+func NewFolderService(
+	folderRepo *repository.FolderRepository,
+	fileRepo *repository.FileRepository,
+	minioStorage storage.FileStorage,
+) *FolderService {
+	return &FolderService{
+		folderRepo: folderRepo,
+		fileRepo:   fileRepo,
+		storage:    minioStorage,
+	}
+}
+
+type FolderDTO struct {
+	ID             uuid.UUID  `json:"id"`
+	UserID         uuid.UUID  `json:"user_id"`
+	Name           string     `json:"name"`
+	ParentFolderID *uuid.UUID `json:"parent_folder_id"`
+	Version        int        `json:"version"`
+	CreatedAt      string     `json:"created_at"`
+	UpdatedAt      string     `json:"updated_at"`
+}
+
+func folderToDTO(f *model.Folder) FolderDTO {
+	return FolderDTO{
+		ID:             f.ID,
+		UserID:         f.UserID,
+		Name:           f.Name,
+		ParentFolderID: f.ParentFolderID,
+		Version:        f.Version,
+		CreatedAt:      f.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      f.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func (s *FolderService) Create(ctx context.Context, userID uuid.UUID, name string, parentFolderID *uuid.UUID) (*FolderDTO, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, model.ErrInvalidInput
+	}
+
+	if parentFolderID != nil {
+		parent, err := s.folderRepo.GetByID(ctx, *parentFolderID, userID)
+		if err != nil {
+			return nil, err
+		}
+		if parent.IsDeleted {
+			return nil, model.ErrNotFound
+		}
+
+		isDescendant, err := s.folderRepo.IsDescendant(ctx, *parentFolderID, *parentFolderID, userID)
+		if err != nil {
+			return nil, err
+		}
+		if isDescendant {
+			return nil, model.ErrInvalidInput
+		}
+	}
+
+	folder := &model.Folder{
+		UserID:         userID,
+		Name:           name,
+		ParentFolderID: parentFolderID,
+	}
+
+	if err := s.folderRepo.Insert(ctx, folder); err != nil {
+		return nil, err
+	}
+
+	dto := folderToDTO(folder)
+	return &dto, nil
+}
+
+func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) (*FolderDTO, error) {
+	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if folder.IsDeleted {
+		return nil, model.ErrNotFound
+	}
+
+	dto := folderToDTO(folder)
+	return &dto, nil
+}
+
+func (s *FolderService) ListByParent(ctx context.Context, userID uuid.UUID, parentID *uuid.UUID) ([]FolderDTO, error) {
+	folders, err := s.folderRepo.ListByParent(ctx, userID, parentID)
+	if err != nil {
+		return nil, err
+	}
+
+	dtos := make([]FolderDTO, len(folders))
+	for i, f := range folders {
+		dtos[i] = folderToDTO(f)
+	}
+
+	return dtos, nil
+}
+
+func (s *FolderService) Update(ctx context.Context, folderID uuid.UUID, userID uuid.UUID, name *string, parentFolderID *uuid.UUID) (*FolderDTO, error) {
+	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if folder.IsDeleted {
+		return nil, model.ErrNotFound
+	}
+
+	if parentFolderID != nil {
+		isDescendant, err := s.folderRepo.IsDescendant(ctx, *parentFolderID, folderID, userID)
+		if err != nil {
+			return nil, err
+		}
+		if isDescendant {
+			return nil, model.ErrInvalidInput
+		}
+	}
+
+	if name != nil {
+		folder.Name = *name
+	}
+	if parentFolderID != nil {
+		folder.ParentFolderID = parentFolderID
+	}
+
+	if err := s.folderRepo.Update(ctx, folder); err != nil {
+		return nil, err
+	}
+
+	dto := folderToDTO(folder)
+	return &dto, nil
+}
+
+func (s *FolderService) Delete(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) error {
+	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
+	if err != nil {
+		return err
+	}
+	if folder.IsDeleted {
+		return model.ErrNotFound
+	}
+
+	return s.folderRepo.SoftDeleteCascade(ctx, folderID, userID)
+}
+
+func (s *FolderService) HardDeleteCascade(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) error {
+	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
+	if err != nil {
+		return err
+	}
+
+	folderDeleteErr := s.folderRepo.HardDelete(ctx, folder.ID)
+	if folderDeleteErr != nil && !errors.Is(folderDeleteErr, model.ErrNotFound) {
+		return folderDeleteErr
+	}
+
+	return nil
+}
+
+func (s *FolderService) IsDescendant(ctx context.Context, folderID, ancestorID uuid.UUID, userID uuid.UUID) (bool, error) {
+	return s.folderRepo.IsDescendant(ctx, folderID, ancestorID, userID)
+}
