@@ -4,6 +4,10 @@
 
 Greenfield project. Repository is empty. Build from scratch.
 
+## Git Operations (Blocked)
+
+This environment cannot execute git commands (commit, push, branch, rebase, etc.). Do not attempt any git operations.
+
 ## Language Policy
 
 All text in this project must be English only:
