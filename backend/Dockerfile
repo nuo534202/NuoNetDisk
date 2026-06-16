@@ -7,7 +7,8 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server/
+ARG VERSION=v0.1.0
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-X main.Version=${VERSION}" -o /server ./cmd/server/
 
 FROM alpine:3.21
 

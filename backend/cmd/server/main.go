@@ -24,6 +24,8 @@ import (
 	"github.com/nuonuo/nuonetdisk/internal/storage"
 )
 
+var Version = "dev" // overridden by -ldflags at build time
+
 func main() {
 	cfg := config.MustLoad()
 
