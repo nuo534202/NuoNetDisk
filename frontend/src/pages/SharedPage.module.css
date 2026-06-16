@@ -3,41 +3,45 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: var(--space-xl);
+  background: var(--canvas);
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 2.5rem;
+  padding: var(--space-xl);
   width: 100%;
   max-width: 480px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   text-align: center;
 }
 
 .title {
+  color: var(--ink);
   font-size: 1.3rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-xs);
 }
 
 .subtitle {
-  color: var(--color-text-secondary);
+  color: var(--muted);
   font-size: 0.9rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-lg);
 }
 
 .detail {
   font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.loading {
-  color: var(--color-text-secondary);
+  color: var(--body);
+  margin-bottom: var(--space-xs);
 }
 
 .error {
-  color: var(--color-danger);
+  color: var(--error);
+}
+
+.subtitle a {
+  color: var(--ink);
+  font-weight: 500;
 }

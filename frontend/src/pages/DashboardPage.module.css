@@ -2,42 +2,45 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: var(--canvas);
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--canvas);
 }
 
 .logo {
   font-size: 1.1rem;
   font-weight: 600;
+  color: var(--ink);
 }
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-md);
 }
 
 .userInfo {
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: var(--muted);
 }
 
 .linkBtn {
   font-size: 0.85rem;
   padding: 0.4rem 0.8rem;
   border-radius: var(--radius-sm);
+  color: var(--ink);
   transition: background 0.15s;
 }
 
 .linkBtn:hover {
-  background: var(--color-surface-hover);
+  background: var(--surface-hover);
   text-decoration: none;
 }
 
@@ -45,21 +48,21 @@
   font-size: 0.85rem;
   padding: 0.4rem 0.8rem;
   border-radius: var(--radius-sm);
-  color: var(--color-danger);
+  color: var(--error);
   transition: background 0.15s;
 }
 
 .logoutBtn:hover {
-  background: rgba(245, 108, 108, 0.1);
+  background: rgba(239, 68, 68, 0.06);
 }
 
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--canvas);
 }
 
 .toolbarBtn {
@@ -68,51 +71,53 @@
   gap: 0.4rem;
   font-size: 0.85rem;
   padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
   transition: background 0.15s, border-color 0.15s;
 }
 
 .toolbarBtn:hover {
-  background: var(--color-surface-hover);
-  border-color: var(--color-primary);
+  background: var(--surface-hover);
+  border-color: var(--ink);
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.6rem 1.5rem;
+  padding: var(--space-xs) var(--space-lg);
   font-size: 0.85rem;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg);
+  border-bottom: 1px solid var(--hairline-soft);
+  background: var(--canvas);
 }
 
 .breadcrumbLink {
-  color: var(--color-text-secondary);
+  color: var(--muted);
   cursor: pointer;
   transition: color 0.15s;
 }
 
 .breadcrumbLink:hover {
-  color: var(--color-text);
+  color: var(--ink);
   text-decoration: none;
 }
 
 .breadcrumbCurrent {
-  color: var(--color-text);
+  color: var(--ink);
   font-weight: 500;
 }
 
 .breadcrumbSep {
-  color: var(--color-text-secondary);
+  color: var(--muted-soft);
 }
 
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 1.5rem;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--canvas);
 }
 
 .empty {
@@ -121,25 +126,25 @@
   align-items: center;
   justify-content: center;
   height: 50vh;
-  color: var(--color-text-secondary);
-  gap: 0.5rem;
+  color: var(--muted);
+  gap: var(--space-xs);
 }
 
 .emptyIcon {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  opacity: 0.4;
+  opacity: 0.3;
 }
 
 .gridHeader {
   display: grid;
   grid-template-columns: auto 1fr auto auto auto;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8rem;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-text-secondary);
-  border-bottom: 1px solid var(--color-border);
+  color: var(--muted);
+  border-bottom: 1px solid var(--hairline);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -147,8 +152,8 @@
 .gridRow {
   display: grid;
   grid-template-columns: auto 1fr auto auto auto;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
   font-size: 0.9rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -157,7 +162,7 @@
 }
 
 .gridRow:hover {
-  background: var(--color-surface-hover);
+  background: var(--surface-hover);
 }
 
 .rowIcon {
@@ -170,16 +175,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--ink);
 }
 
 .rowSize {
-  color: var(--color-text-secondary);
+  color: var(--muted);
   font-size: 0.85rem;
   font-family: var(--font-mono);
 }
 
 .rowDate {
-  color: var(--color-text-secondary);
+  color: var(--muted);
   font-size: 0.85rem;
 }
 
@@ -187,7 +193,7 @@
   display: flex;
   gap: 0.25rem;
   opacity: 0;
-  transition: opacity 0.1s;
+  transition: opacity 0.15s;
 }
 
 .gridRow:hover .rowActions {
@@ -198,13 +204,13 @@
   padding: 0.25rem 0.4rem;
   font-size: 0.8rem;
   border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
+  color: var(--muted);
   transition: color 0.15s, background 0.15s;
 }
 
 .actionBtn:hover {
-  color: var(--color-text);
-  background: var(--color-surface);
+  color: var(--error);
+  background: var(--surface-hover);
 }
 
 .dialog {
@@ -213,69 +219,76 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.4);
   z-index: 100;
 }
 
 .dialogCard {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  padding: var(--space-lg);
   width: 100%;
   max-width: 380px;
+  box-shadow: var(--shadow-md);
 }
 
 .dialogTitle {
+  color: var(--ink);
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-md);
 }
 
 .dialogInput {
   width: 100%;
-  padding: 0.6rem 0.85rem;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
+  padding: 10px 14px;
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  color: var(--ink);
   font-size: 0.9rem;
   outline: none;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-md);
+  transition: border-color 0.15s;
 }
 
 .dialogInput:focus {
-  border-color: var(--color-primary);
+  border-color: var(--ink);
 }
 
 .dialogActions {
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
+  gap: var(--space-xs);
 }
 
 .dialogCancel {
   padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  transition: background 0.15s;
 }
 
 .dialogCancel:hover {
-  background: var(--color-surface-hover);
+  background: var(--surface-hover);
 }
 
 .dialogConfirm {
   padding: 0.45rem 0.85rem;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   font-size: 0.85rem;
-  background: var(--color-primary);
-  color: #fff;
+  font-weight: 600;
+  background: var(--primary);
+  color: var(--on-primary);
+  transition: background 0.15s;
 }
 
 .dialogConfirm:hover {
-  background: var(--color-primary-hover);
+  background: var(--primary-active);
 }
 
 .hiddenInput {
