@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, type FormEvent } from "react";
+import { useState, useEffect, useRef, useCallback, type FormEvent } from "react";
 import { Link, useParams } from "react-router-dom";
-import { useAuth } from "../store/AuthContext";
+import { useAuth } from "../store/useAuth";
 import { fileService } from "../services/files";
 import { folderService } from "../services/folders";
 import type { File as AppFile, Folder } from "../types";
@@ -37,33 +37,34 @@ export default function DashboardPage() {
 
   const currentFolderId = folderId || null;
 
-  async function loadContents(fid: string | null) {
-    try {
-      const [fileRes, folderRes] = await Promise.all([
-        fileService.list({ folder_id: fid || undefined, limit: 100 }),
-        folderService.list(fid || undefined),
-      ]);
-      setFiles(fileRes.items);
-      setFolders(folderRes.items);
-    } catch {
-      setFiles([]);
-      setFolders([]);
-    }
-  }
+  const reload = useCallback((fid: string | null) => {
+    Promise.all([
+      fileService.list({ folder_id: fid || undefined, limit: 100 }),
+      folderService.list(fid || undefined),
+    ])
+      .then(([fileRes, folderRes]) => {
+        setFiles(fileRes.items);
+        setFolders(folderRes.items);
+      })
+      .catch(() => {
+        setFiles([]);
+        setFolders([]);
+      });
+
+    const breadcrumbPromise = fid
+      ? folderService.get(fid).then(
+          (folder) => [
+            { id: null, name: "Root" },
+            { id: folder.id, name: folder.name },
+          ],
+        )
+      : Promise.resolve([{ id: null, name: "Root" }]);
+    breadcrumbPromise.then(setBreadcrumbs).catch(() => setBreadcrumbs([{ id: null, name: "Root" }]));
+  }, []);
 
   useEffect(() => {
-    loadContents(currentFolderId);
-    updateBreadcrumbs(currentFolderId);
-  }, [currentFolderId]);
-
-  async function updateBreadcrumbs(fid: string | null) {
-    const items: BreadcrumbItem[] = [{ id: null, name: "Root" }];
-    if (fid) {
-      const folder = await folderService.get(fid);
-      items.push({ id: folder.id, name: folder.name });
-    }
-    setBreadcrumbs(items);
-  }
+    reload(currentFolderId);
+  }, [currentFolderId, reload]);
 
   function navigateToFolder(fid: string | null) {
     const path = fid ? `/folder/${fid}` : "/";
@@ -78,7 +79,7 @@ export default function DashboardPage() {
       await folderService.create(newFolderName.trim(), currentFolderId);
       setNewFolderName("");
       setShowCreateDialog(false);
-      loadContents(currentFolderId);
+      reload(currentFolderId);
     } catch {
       // error handled silently
     }
@@ -90,7 +91,7 @@ export default function DashboardPage() {
     setUploading(true);
     try {
       await fileService.upload(file, currentFolderId || undefined);
-      loadContents(currentFolderId);
+      reload(currentFolderId);
     } catch {
       // error handled silently
     } finally {
@@ -102,7 +103,7 @@ export default function DashboardPage() {
   async function handleDeleteFile(fileId: string) {
     try {
       await fileService.delete(fileId);
-      loadContents(currentFolderId);
+      reload(currentFolderId);
     } catch {
       // error handled silently
     }
@@ -111,7 +112,7 @@ export default function DashboardPage() {
   async function handleDeleteFolder(folderId: string) {
     try {
       await folderService.delete(folderId);
-      loadContents(currentFolderId);
+      reload(currentFolderId);
     } catch {
       // error handled silently
     }

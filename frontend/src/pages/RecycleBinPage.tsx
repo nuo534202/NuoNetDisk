@@ -16,39 +16,48 @@ export default function RecycleBinPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
 
-  async function loadFiles() {
-    const res = await recycleBinService.listFiles({ limit: 100 });
-    setFiles(res.items);
-  }
-
-  async function loadFolders() {
-    const res = await recycleBinService.listFolders({ limit: 100 });
-    setFolders(res.items);
-  }
-
   useEffect(() => {
-    if (tab === "files") loadFiles();
-    else loadFolders();
+    if (tab === "files") {
+      recycleBinService.listFiles({ limit: 100 })
+        .then((res) => setFiles(res.items))
+        .catch(() => setFiles([]));
+    } else {
+      recycleBinService.listFolders({ limit: 100 })
+        .then((res) => setFolders(res.items))
+        .catch(() => setFolders([]));
+    }
   }, [tab]);
+
+  function reloadFiles() {
+    recycleBinService.listFiles({ limit: 100 })
+      .then((res) => setFiles(res.items))
+      .catch(() => setFiles([]));
+  }
+
+  function reloadFolders() {
+    recycleBinService.listFolders({ limit: 100 })
+      .then((res) => setFolders(res.items))
+      .catch(() => setFolders([]));
+  }
 
   async function handleRestoreFile(fileId: string) {
     await recycleBinService.restoreFile(fileId);
-    loadFiles();
+    reloadFiles();
   }
 
   async function handlePermanentDeleteFile(fileId: string) {
     await recycleBinService.permanentDeleteFile(fileId);
-    loadFiles();
+    reloadFiles();
   }
 
   async function handleRestoreFolder(folderId: string) {
     await recycleBinService.restoreFolder(folderId);
-    loadFolders();
+    reloadFolders();
   }
 
   async function handlePermanentDeleteFolder(folderId: string) {
     await recycleBinService.permanentDeleteFolder(folderId);
-    loadFolders();
+    reloadFolders();
   }
 
   const displayItems = tab === "files" ? files : folders;

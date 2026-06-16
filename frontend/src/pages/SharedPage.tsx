@@ -11,7 +11,6 @@ export default function SharedPage() {
 
   useEffect(() => {
     if (!token) return;
-    setLoading(true);
     shareService.accessByToken(token)
       .then((res) => {
         setData(res as Record<string, unknown>);

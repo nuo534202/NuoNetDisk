@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../store/AuthContext";
+import { useAuth } from "../store/useAuth";
 import type { ErrorResponse } from "../types";
 import styles from "./RegisterPage.module.css";
 

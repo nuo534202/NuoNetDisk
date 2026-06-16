@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../store/AuthContext";
+import { useAuth } from "../store/useAuth";
 import { userService } from "../services/user";
 import styles from "./ProfilePage.module.css";
 
