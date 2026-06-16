@@ -5,7 +5,7 @@ import { userService } from "../services/user";
 import styles from "./ProfilePage.module.css";
 
 export default function ProfilePage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const [displayName, setDisplayName] = useState(user?.display_name ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,7 +18,8 @@ export default function ProfilePage() {
     setError(null);
     setSuccess(false);
     try {
-      await userService.updateMe({ display_name: displayName.trim() });
+      const updated = await userService.updateMe({ display_name: displayName.trim() });
+      updateUser(updated);
       setSuccess(true);
     } catch {
       setError("Failed to update profile");
