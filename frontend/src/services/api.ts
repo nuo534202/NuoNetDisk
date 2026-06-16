@@ -52,8 +52,9 @@ async function request<T>(
 ): Promise<T> {
   const url = `${BASE_URL}${path}`;
   const headers: Record<string, string> = {};
+  const isFormData = body instanceof FormData;
 
-  if (!options?.rawResponse) {
+  if (!options?.rawResponse && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
 
@@ -66,11 +67,11 @@ async function request<T>(
     headers,
   };
 
-  if (body && !options?.rawResponse) {
+  if (body && !options?.rawResponse && !isFormData) {
     fetchOptions.body = JSON.stringify(body);
   }
 
-  if (body && options?.rawResponse) {
+  if (body && (options?.rawResponse || isFormData)) {
     fetchOptions.body = body as BodyInit;
   }
 

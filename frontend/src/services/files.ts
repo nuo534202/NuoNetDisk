@@ -17,7 +17,7 @@ export const fileService = {
     const formData = new FormData();
     formData.append("file", file);
     if (parentFolderId) formData.append("parent_folder_id", parentFolderId);
-    return api.post<AppFile>("/files", formData);
+    return api.upload<AppFile>("/files", formData);
   },
 
   get: (fileId: string) => api.get<AppFile>(`/files/${fileId}`),
