@@ -1,4 +1,4 @@
-import { api } from "./api";
+import { api, getDownloadUrl } from "./api";
 import type { File as AppFile, PaginatedResponse } from "../types";
 
 export const fileService = {
@@ -22,8 +22,7 @@ export const fileService = {
 
   get: (fileId: string) => api.get<AppFile>(`/files/${fileId}`),
 
-  download: (fileId: string) =>
-    api.get<Blob>(`/files/${fileId}/download`),
+  downloadUrl: (fileId: string) => getDownloadUrl(`/files/${fileId}/download`),
 
   update: (fileId: string, data: { name?: string; parent_folder_id?: string | null }) =>
     api.patch<AppFile>(`/files/${fileId}`, data),

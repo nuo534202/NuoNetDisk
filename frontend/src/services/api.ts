@@ -107,6 +107,16 @@ async function request<T>(
   return response.json();
 }
 
+export function getDownloadUrl(path: string): string {
+  const url = `${BASE_URL}${path}`;
+  const token = accessToken;
+  if (token) {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}token=${encodeURIComponent(token)}`;
+  }
+  return url;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),

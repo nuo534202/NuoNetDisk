@@ -100,6 +100,13 @@ export default function DashboardPage() {
     }
   }
 
+  function handleDownload(fileId: string) {
+    const url = fileService.downloadUrl(fileId);
+    const a = document.createElement("a");
+    a.href = url;
+    a.click();
+  }
+
   async function handleDeleteFile(fileId: string) {
     try {
       await fileService.delete(fileId);
@@ -200,6 +207,9 @@ export default function DashboardPage() {
                 <span className={styles.rowSize}>{formatSize(f.size)}</span>
                 <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
                 <span className={styles.rowActions}>
+                  <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
+                    &#8595;
+                  </button>
                   <button className={styles.actionBtn} onClick={() => handleDeleteFile(f.id)} title="Delete">
                     &#128465;
                   </button>

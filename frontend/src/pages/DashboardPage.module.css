@@ -213,6 +213,19 @@
   background: var(--surface-hover);
 }
 
+.downloadBtn {
+  padding: 0.25rem 0.4rem;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  transition: color 0.15s, background 0.15s;
+}
+
+.downloadBtn:hover {
+  color: var(--primary);
+  background: var(--surface-hover);
+}
+
 .dialog {
   position: fixed;
   inset: 0;

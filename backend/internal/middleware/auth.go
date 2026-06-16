@@ -39,29 +39,31 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
+		tokenString := ""
+
 		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+				tokenString = parts[1]
+			}
+		}
+
+		if tokenString == "" {
+			tokenString = c.Query("token")
+		}
+
+		if tokenString == "" {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": gin.H{
 					"code":    "MISSING_TOKEN",
-					"message": "Authorization header is required",
+					"message": "Authorization header or token query parameter is required",
 				},
 			})
 			return
 		}
 
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || !strings.EqualFold(parts[0], "Bearer") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": gin.H{
-					"code":    "INVALID_TOKEN",
-					"message": "Authorization header must be Bearer {token}",
-				},
-			})
-			return
-		}
-
-		claims, err := m.jwtService.ValidateAccessToken(parts[1])
+		claims, err := m.jwtService.ValidateAccessToken(tokenString)
 		if err != nil {
 			code := "INVALID_TOKEN"
 			if strings.Contains(err.Error(), "expired") {
