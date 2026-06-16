@@ -76,7 +76,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", claims.UserID)
+		c.Set("user_id", claims.UserID.String())
 		c.Set("email", claims.Email)
 		c.Next()
 	}

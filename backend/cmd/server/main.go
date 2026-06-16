@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
+	"sort"
+	"strings"
 	"syscall"
 	"time"
 
@@ -165,4 +168,81 @@ func main() {
 
 func runMigrations(pool *pgxpool.Pool) {
 	log.Println("running database migrations...")
+
+	migrationsDir := "migrations"
+	if _, err := os.Stat("/migrations"); err == nil {
+		migrationsDir = "/migrations"
+	}
+
+	if _, err := pool.Exec(context.Background(), `
+		CREATE TABLE IF NOT EXISTS schema_migrations (
+			filename VARCHAR(255) PRIMARY KEY,
+			applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+		)
+	`); err != nil {
+		log.Fatalf("failed to create schema_migrations table: %v", err)
+	}
+
+	rows, err := pool.Query(context.Background(), "SELECT filename FROM schema_migrations ORDER BY filename")
+	if err != nil {
+		log.Fatalf("failed to query applied migrations: %v", err)
+	}
+	defer rows.Close()
+
+	applied := make(map[string]bool)
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			log.Fatalf("failed to scan migration filename: %v", err)
+		}
+		applied[name] = true
+	}
+
+	entries, err := os.ReadDir(migrationsDir)
+	if err != nil {
+		log.Fatalf("failed to read migrations directory: %v", err)
+	}
+
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Name() < entries[j].Name()
+	})
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".up.sql") {
+			continue
+		}
+		if applied[entry.Name()] {
+			continue
+		}
+
+		content, err := os.ReadFile(filepath.Join(migrationsDir, entry.Name()))
+		if err != nil {
+			log.Fatalf("failed to read migration %s: %v", entry.Name(), err)
+		}
+
+		tx, err := pool.Begin(context.Background())
+		if err != nil {
+			log.Fatalf("failed to begin transaction: %v", err)
+		}
+
+		if _, err := tx.Exec(context.Background(), string(content)); err != nil {
+			_ = tx.Rollback(context.Background())
+			log.Fatalf("failed to execute migration %s: %v", entry.Name(), err)
+		}
+
+		if _, err := tx.Exec(context.Background(),
+			"INSERT INTO schema_migrations (filename) VALUES ($1)", entry.Name(),
+		); err != nil {
+			_ = tx.Rollback(context.Background())
+			log.Fatalf("failed to record migration %s: %v", entry.Name(), err)
+		}
+
+		if err := tx.Commit(context.Background()); err != nil {
+			log.Fatalf("failed to commit migration %s: %v", entry.Name(), err)
+		}
+
+		log.Printf("applied migration: %s", entry.Name())
+	}
+
+	log.Println("all migrations applied successfully")
 }

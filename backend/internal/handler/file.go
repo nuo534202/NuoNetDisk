@@ -186,14 +186,14 @@ func (h *FileHandler) Delete(c *gin.Context) {
 }
 
 func getUserID(c *gin.Context) *uuid.UUID {
-	userIDStr, exists := c.Get("user_id")
-	if !exists {
+	userIDStr := c.GetString("user_id")
+	if userIDStr == "" {
 		httputil.RespondError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Authentication required")
 		return nil
 	}
 
-	userID, ok := userIDStr.(uuid.UUID)
-	if !ok {
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
 		httputil.RespondError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Invalid user")
 		return nil
 	}

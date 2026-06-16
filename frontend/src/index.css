@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
 *,
 *::before,
 *::after {
@@ -7,40 +9,104 @@
 }
 
 :root {
-  --color-bg: #0f0f11;
-  --color-surface: #1a1a1e;
-  --color-surface-hover: #22222a;
-  --color-border: #2a2a32;
-  --color-text: #e4e4e7;
-  --color-text-secondary: #888896;
-  --color-primary: #4f8cff;
-  --color-primary-hover: #3a7aff;
-  --color-danger: #f56c6c;
-  --color-danger-hover: #e05050;
-  --color-success: #34d399;
-  --color-warning: #fbbf24;
-  --font-sans: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+  /* Brand & Primary Actions */
+  --primary: #111111;
+  --primary-active: #242424;
+  --primary-disabled: #e5e7eb;
+  --brand-accent: #3b82f6;
+
+  /* Surface Colors */
+  --canvas: #ffffff;
+  --surface-soft: #f8f9fa;
+  --surface-card: #f5f5f5;
+  --surface-strong: #e5e7eb;
+  --surface-hover: #edf2f7;
+  --surface-dark: #101010;
+  --surface-dark-elevated: #1a1a1a;
+
+  /* Border Colors */
+  --hairline: #e5e7eb;
+  --hairline-soft: #f3f4f6;
+
+  /* Text Colors */
+  --ink: #111111;
+  --body: #374151;
+  --muted: #6b7280;
+  --muted-soft: #898989;
+  --on-primary: #ffffff;
+  --on-dark: #ffffff;
+  --on-dark-soft: #a1a1aa;
+
+  /* Semantic Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* Badge Pastels */
+  --badge-orange: #fb923c;
+  --badge-pink: #ec4899;
+  --badge-violet: #8b5cf6;
+  --badge-emerald: #34d399;
+
+  /* Typography */
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+
+  /* Border Radius */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* Spacing (4px base unit) */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 96px;
+
+  /* Shadows — soft and minimal */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* Legacy variable aliases (mapped to new values) */
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f5;
+  --color-surface-hover: #edf2f7;
+  --color-border: #e5e7eb;
+  --color-text: #111111;
+  --color-text-secondary: #6b7280;
+  --color-primary: #111111;
+  --color-primary-hover: #242424;
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 html {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--canvas);
+  color: var(--body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: var(--color-primary);
+  color: var(--ink);
   text-decoration: none;
 }
 
@@ -61,4 +127,9 @@ button {
   border: none;
   background: none;
   color: inherit;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--on-primary);
 }
