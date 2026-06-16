@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.gitignore
+*.local
+.DS_Store
+**/*.test.ts
+**/*.test.tsx
+__tests__

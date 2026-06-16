@@ -1,7 +1,22 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: nuonetdisk-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_started
+
   postgres:
     image: postgres:16-alpine
     container_name: nuonetdisk-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-nuonetdisk}
       POSTGRES_USER: ${POSTGRES_USER:-nuonetdisk}
@@ -19,6 +34,7 @@ services:
   minio:
     image: minio/minio:latest
     container_name: nuonetdisk-minio
+    restart: unless-stopped
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-nuonetdisk}
@@ -39,6 +55,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: nuonetdisk-backend
+    restart: unless-stopped
     environment:
       SERVER_PORT: "8080"
       DATABASE_URL: "postgres://nuonetdisk:nuonetdisk_dev@postgres:5432/nuonetdisk?sslmode=disable"
