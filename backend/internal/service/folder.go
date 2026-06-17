@@ -11,6 +11,7 @@ import (
 	"github.com/nuonuo/nuonetdisk/internal/model"
 	"github.com/nuonuo/nuonetdisk/internal/repository"
 	"github.com/nuonuo/nuonetdisk/internal/storage"
+	"github.com/nuonuo/nuonetdisk/pkg/nullable"
 )
 
 type FolderService struct {
@@ -127,7 +128,7 @@ func (s *FolderService) ListByParent(ctx context.Context, userID uuid.UUID, pare
 	return dtos, nil
 }
 
-func (s *FolderService) Update(ctx context.Context, folderID uuid.UUID, userID uuid.UUID, name *string, parentFolderID *uuid.UUID) (*FolderDTO, error) {
+func (s *FolderService) Update(ctx context.Context, folderID uuid.UUID, userID uuid.UUID, name *string, parentFolderID nullable.UUID) (*FolderDTO, error) {
 	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
 	if err != nil {
 		return nil, err
@@ -136,21 +137,21 @@ func (s *FolderService) Update(ctx context.Context, folderID uuid.UUID, userID u
 		return nil, model.ErrNotFound
 	}
 
-	if parentFolderID != nil {
-		isDescendant, err := s.folderRepo.IsDescendant(ctx, *parentFolderID, folderID, userID)
-		if err != nil {
-			return nil, err
+	if parentFolderID.Valid {
+		if parentFolderID.UUID != nil {
+			isDescendant, err := s.folderRepo.IsDescendant(ctx, *parentFolderID.UUID, folderID, userID)
+			if err != nil {
+				return nil, err
+			}
+			if isDescendant {
+				return nil, model.ErrInvalidInput
+			}
 		}
-		if isDescendant {
-			return nil, model.ErrInvalidInput
-		}
+		folder.ParentFolderID = parentFolderID.UUID
 	}
 
 	if name != nil {
 		folder.Name = *name
-	}
-	if parentFolderID != nil {
-		folder.ParentFolderID = parentFolderID
 	}
 
 	if err := s.folderRepo.Update(ctx, folder); err != nil {

@@ -16,6 +16,7 @@ import (
 	"github.com/nuonuo/nuonetdisk/internal/model"
 	"github.com/nuonuo/nuonetdisk/internal/repository"
 	"github.com/nuonuo/nuonetdisk/internal/storage"
+	"github.com/nuonuo/nuonetdisk/pkg/nullable"
 )
 
 type FileService struct {
@@ -175,7 +176,7 @@ func (s *FileService) Delete(ctx context.Context, fileID uuid.UUID, userID uuid.
 	return s.fileRepo.SoftDelete(ctx, fileID, userID)
 }
 
-func (s *FileService) Update(ctx context.Context, fileID uuid.UUID, userID uuid.UUID, name *string, parentFolderID *uuid.UUID) (*FileDTO, error) {
+func (s *FileService) Update(ctx context.Context, fileID uuid.UUID, userID uuid.UUID, name *string, parentFolderID nullable.UUID) (*FileDTO, error) {
 	file, err := s.fileRepo.GetByID(ctx, fileID, userID)
 	if err != nil {
 		return nil, err
@@ -187,8 +188,8 @@ func (s *FileService) Update(ctx context.Context, fileID uuid.UUID, userID uuid.
 	if name != nil {
 		file.Name = *name
 	}
-	if parentFolderID != nil {
-		file.ParentFolderID = parentFolderID
+	if parentFolderID.Valid {
+		file.ParentFolderID = parentFolderID.UUID
 	}
 
 	if err := s.fileRepo.Update(ctx, file); err != nil {

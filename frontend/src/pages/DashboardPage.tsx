@@ -40,6 +40,13 @@ export default function DashboardPage() {
   const [showExtWarning, setShowExtWarning] = useState(false);
   const [pendingRenameValue, setPendingRenameValue] = useState("");
 
+  const [moveTarget, setMoveTarget] = useState<{ type: "file" | "folder"; id: string; name: string } | null>(null);
+  const [moveFolderStack, setMoveFolderStack] = useState<{ id: string | null; name: string }[]>([
+    { id: null, name: "Root" },
+  ]);
+  const [moveFolderList, setMoveFolderList] = useState<Folder[]>([]);
+  const [moveLoading, setMoveLoading] = useState(false);
+
   const currentFolderId = folderId || null;
 
   const reload = useCallback((fid: string | null) => {
@@ -178,6 +185,58 @@ export default function DashboardPage() {
     setPendingRenameValue("");
   }
 
+  function openMove(type: "file" | "folder", id: string, name: string) {
+    setMoveTarget({ type, id, name });
+    setMoveFolderStack([{ id: null, name: "Root" }]);
+    loadMoveFolders(null);
+  }
+
+  function currentMoveFolderId(): string | null {
+    return moveFolderStack[moveFolderStack.length - 1]?.id ?? null;
+  }
+
+  async function loadMoveFolders(parentId: string | null) {
+    setMoveLoading(true);
+    try {
+      const res = await folderService.list(parentId || undefined);
+      setMoveFolderList(res.items);
+    } catch {
+      setMoveFolderList([]);
+    } finally {
+      setMoveLoading(false);
+    }
+  }
+
+  function moveNavigateToFolder(fid: string, name: string) {
+    setMoveFolderStack((prev) => [...prev, { id: fid, name }]);
+    loadMoveFolders(fid);
+  }
+
+  function moveNavigateUp() {
+    if (moveFolderStack.length <= 1) return;
+    const newStack = moveFolderStack.slice(0, -1);
+    setMoveFolderStack(newStack);
+    loadMoveFolders(newStack[newStack.length - 1]?.id ?? null);
+  }
+
+  async function handleMoveHere() {
+    if (!moveTarget) return;
+    const destFolderId = currentMoveFolderId();
+    try {
+      if (moveTarget.type === "file") {
+        await fileService.update(moveTarget.id, { parent_folder_id: destFolderId });
+      } else {
+        await folderService.update(moveTarget.id, { parent_folder_id: destFolderId });
+      }
+      setMoveTarget(null);
+      setMoveFolderStack([{ id: null, name: "Root" }]);
+      setMoveFolderList([]);
+      reload(currentFolderId);
+    } catch {
+      // error handled silently
+    }
+  }
+
   const hasContent = folders.length > 0 || files.length > 0;
 
   return (
@@ -249,6 +308,9 @@ export default function DashboardPage() {
                   <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("folder", f.id, f.name); }} title="Rename">
                     &#9998;
                   </button>
+                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("folder", f.id, f.name); }} title="Move">
+                    &#8594;
+                  </button>
                   <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id); }} title="Delete">
                     &#128465;
                   </button>
@@ -265,6 +327,9 @@ export default function DashboardPage() {
                 <span className={styles.rowActions}>
                   <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("file", f.id, f.name); }} title="Rename">
                     &#9998;
+                  </button>
+                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("file", f.id, f.name); }} title="Move">
+                    &#8594;
                   </button>
                   <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
                     &#8595;
@@ -345,6 +410,89 @@ export default function DashboardPage() {
               </button>
               <button type="button" className={styles.dialogConfirm} onClick={confirmExtChange}>
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {moveTarget && (
+        <div className={styles.dialog} onClick={() => setMoveTarget(null)}>
+          <div className={styles.moveDialogCard} onClick={(e) => e.stopPropagation()}>
+            <h2 className={styles.dialogTitle}>
+              Move &ldquo;{moveTarget.name}&rdquo;
+            </h2>
+
+            <div className={styles.moveBreadcrumb}>
+              <span
+                className={styles.moveBreadcrumbLink}
+                onClick={() => {
+                  setMoveFolderStack([{ id: null, name: "Root" }]);
+                  loadMoveFolders(null);
+                }}
+              >
+                Root
+              </span>
+              {moveFolderStack.slice(1).map((item, i) => (
+                <span key={item.id ?? "root"} style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <span className={styles.breadcrumbSep}>/</span>
+                  {i === moveFolderStack.length - 2 ? (
+                    <span className={styles.moveBreadcrumbCurrent}>{item.name}</span>
+                  ) : (
+                    <span
+                      className={styles.moveBreadcrumbLink}
+                      onClick={() => {
+                        const newStack = moveFolderStack.slice(0, i + 2);
+                        setMoveFolderStack(newStack);
+                        loadMoveFolders(newStack[newStack.length - 1]?.id ?? null);
+                      }}
+                    >
+                      {item.name}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+
+            <div className={styles.moveFolderList}>
+              {moveFolderStack.length > 1 && (
+                <div className={styles.moveFolderItem} onClick={moveNavigateUp}>
+                  <span className={styles.moveFolderIcon}>&#128281;</span>
+                  <span>..</span>
+                </div>
+              )}
+              {moveLoading ? (
+                <div className={styles.moveEmpty}>Loading...</div>
+              ) : moveFolderList.length === 0 ? (
+                <div className={styles.moveEmpty}>No subfolders</div>
+              ) : (
+                moveFolderList.map((folder) => (
+                  <div
+                    key={folder.id}
+                    className={styles.moveFolderItem}
+                    onClick={() => moveNavigateToFolder(folder.id, folder.name)}
+                  >
+                    <span className={styles.moveFolderIcon}>&#128193;</span>
+                    <span>{folder.name}</span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className={styles.dialogCancel}
+                onClick={() => {
+                  setMoveTarget(null);
+                  setMoveFolderStack([{ id: null, name: "Root" }]);
+                  setMoveFolderList([]);
+                }}
+              >
+                Cancel
+              </button>
+              <button type="button" className={styles.dialogConfirm} onClick={handleMoveHere}>
+                Move here
               </button>
             </div>
           </div>

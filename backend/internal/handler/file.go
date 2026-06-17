@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuonuo/nuonetdisk/internal/service"
+	"github.com/nuonuo/nuonetdisk/pkg/nullable"
 	"github.com/nuonuo/nuonetdisk/pkg/httputil"
 )
 
@@ -148,8 +149,8 @@ func (h *FileHandler) Update(c *gin.Context) {
 	}
 
 	var req struct {
-		Name           *string    `json:"name"`
-		ParentFolderID *uuid.UUID `json:"parent_folder_id"`
+		Name           *string       `json:"name"`
+		ParentFolderID nullable.UUID `json:"parent_folder_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		httputil.RespondError(c, http.StatusBadRequest, "INVALID_INPUT", "Invalid request body")

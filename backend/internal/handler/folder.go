@@ -7,7 +7,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuonuo/nuonetdisk/internal/service"
-	"github.com/nuonuo/nuonetdisk/pkg/httputil"
+	"github.com/nuonuo/nuonetdisk/pkg/nullable"
+	httputil "github.com/nuonuo/nuonetdisk/pkg/httputil"
 )
 
 type FolderHandler struct {
@@ -94,8 +95,8 @@ func (h *FolderHandler) GetByID(c *gin.Context) {
 }
 
 type updateFolderRequest struct {
-	Name           *string    `json:"name"`
-	ParentFolderID *uuid.UUID `json:"parent_folder_id"`
+	Name           *string       `json:"name"`
+	ParentFolderID nullable.UUID `json:"parent_folder_id"`
 }
 
 func (h *FolderHandler) Update(c *gin.Context) {

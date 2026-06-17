@@ -307,3 +307,80 @@
 .hiddenInput {
   display: none;
 }
+
+.moveDialogCard {
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow-md);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.moveBreadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: var(--space-xs) 0;
+  margin-bottom: var(--space-sm);
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.moveBreadcrumbLink {
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.moveBreadcrumbLink:hover {
+  color: var(--ink);
+}
+
+.moveBreadcrumbCurrent {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.moveFolderList {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 120px;
+  max-height: 300px;
+  margin-bottom: var(--space-md);
+}
+
+.moveFolderItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--ink);
+  transition: background 0.1s;
+}
+
+.moveFolderItem:hover {
+  background: var(--surface-hover);
+}
+
+.moveFolderIcon {
+  font-size: 1.1rem;
+  width: 1.5rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.moveEmpty {
+  padding: 1.5rem 0.5rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
