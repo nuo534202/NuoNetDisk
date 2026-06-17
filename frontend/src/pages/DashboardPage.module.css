@@ -384,3 +384,40 @@
   color: var(--muted);
   font-size: 0.85rem;
 }
+
+.detailsCard {
+  background: var(--canvas);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: var(--shadow-md);
+}
+
+.detailsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-md);
+}
+
+.detailsTable tr:not(:last-child) td {
+  border-bottom: 1px solid var(--hairline-soft);
+}
+
+.detailsLabel {
+  padding: 0.6rem 0.6rem 0.6rem 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  vertical-align: top;
+  width: 110px;
+}
+
+.detailsValue {
+  padding: 0.6rem 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+  word-break: break-word;
+}

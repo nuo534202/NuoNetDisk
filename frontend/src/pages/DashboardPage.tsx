@@ -23,6 +23,12 @@ interface BreadcrumbItem {
   name: string;
 }
 
+function getFileLocation(file: AppFile, crumbs: BreadcrumbItem[]): string {
+  if (!file.parent_folder_id) return "Root";
+  const path = crumbs.map((c) => c.name).join(" / ");
+  return path || "Root";
+}
+
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const { folderId } = useParams<{ folderId: string }>();
@@ -47,6 +53,8 @@ export default function DashboardPage() {
   ]);
   const [moveFolderList, setMoveFolderList] = useState<Folder[]>([]);
   const [moveLoading, setMoveLoading] = useState(false);
+
+  const [detailsFile, setDetailsFile] = useState<AppFile | null>(null);
 
   const currentFolderId = folderId || null;
 
@@ -346,6 +354,9 @@ export default function DashboardPage() {
                 <span className={styles.rowSize}>{formatSize(f.size)}</span>
                 <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
                 <span className={styles.rowActions}>
+                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); setDetailsFile(f); }} title="Details">
+                    &#8505;
+                  </button>
                   <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("file", f.id, f.name); }} title="Rename">
                     &#9998;
                   </button>
@@ -514,6 +525,44 @@ export default function DashboardPage() {
               </button>
               <button type="button" className={styles.dialogConfirm} onClick={handleMoveHere}>
                 Move here
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {detailsFile && (
+        <div className={styles.dialog} onClick={() => setDetailsFile(null)}>
+          <div className={styles.detailsCard} onClick={(e) => e.stopPropagation()}>
+            <h2 className={styles.dialogTitle}>File details</h2>
+            <table className={styles.detailsTable}>
+              <tbody>
+                <tr>
+                  <td className={styles.detailsLabel}>Name</td>
+                  <td className={styles.detailsValue}>{detailsFile.name}</td>
+                </tr>
+                <tr>
+                  <td className={styles.detailsLabel}>Size</td>
+                  <td className={styles.detailsValue}>{formatSize(detailsFile.size)}</td>
+                </tr>
+                <tr>
+                  <td className={styles.detailsLabel}>Location</td>
+                  <td className={styles.detailsValue}>{getFileLocation(detailsFile, breadcrumbs)}</td>
+                </tr>
+
+                <tr>
+                  <td className={styles.detailsLabel}>Created</td>
+                  <td className={styles.detailsValue}>{formatDate(detailsFile.created_at)}</td>
+                </tr>
+                <tr>
+                  <td className={styles.detailsLabel}>Updated</td>
+                  <td className={styles.detailsValue}>{formatDate(detailsFile.updated_at)}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div className={styles.dialogActions}>
+              <button type="button" className={styles.dialogConfirm} onClick={() => setDetailsFile(null)}>
+                Close
               </button>
             </div>
           </div>
