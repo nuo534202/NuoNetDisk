@@ -132,7 +132,7 @@ export default function DashboardPage() {
       <header className={styles.header}>
         <span className={styles.logo}>NuoNetDisk</span>
         <div className={styles.headerActions}>
-          <span className={styles.userInfo}>{user?.email}</span>
+          <span className={styles.userInfo}>{user?.display_name}</span>
           <Link to="/recycle-bin" className={styles.linkBtn}>Recycle bin</Link>
           <Link to="/profile" className={styles.linkBtn}>Profile</Link>
           <button className={styles.logoutBtn} onClick={logout}>Sign out</button>
