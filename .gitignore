@@ -27,3 +27,8 @@ Thumbs.db
 
 # Docker
 .docker/
+
+
+# Docs
+docs/requirements.md
+docs/design/
