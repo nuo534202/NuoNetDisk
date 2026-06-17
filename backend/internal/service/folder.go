@@ -101,6 +101,23 @@ func (s *FolderService) Create(ctx context.Context, userID uuid.UUID, name strin
 	return &dto, nil
 }
 
+type AncestorDTO struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+func (s *FolderService) GetAncestors(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) ([]AncestorDTO, error) {
+	rows, err := s.folderRepo.GetAncestors(ctx, folderID, userID)
+	if err != nil {
+		return nil, err
+	}
+	dtos := make([]AncestorDTO, len(rows))
+	for i, r := range rows {
+		dtos[i] = AncestorDTO{ID: r.ID, Name: r.Name}
+	}
+	return dtos, nil
+}
+
 func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) (*FolderDTO, error) {
 	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
 	if err != nil {

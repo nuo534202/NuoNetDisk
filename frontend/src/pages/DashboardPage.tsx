@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const [files, setFiles] = useState<AppFile[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([{ id: null, name: "Root" }]);
+  const [currentFolderParentId, setCurrentFolderParentId] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -63,15 +64,25 @@ export default function DashboardPage() {
         setFolders([]);
       });
 
-    const breadcrumbPromise = fid
-      ? folderService.get(fid).then(
-          (folder) => [
+    if (fid) {
+      folderService
+        .getAncestors(fid)
+        .then((ancestors) => {
+          setBreadcrumbs([
             { id: null, name: "Root" },
-            { id: folder.id, name: folder.name },
-          ],
-        )
-      : Promise.resolve([{ id: null, name: "Root" }]);
-    breadcrumbPromise.then(setBreadcrumbs).catch(() => setBreadcrumbs([{ id: null, name: "Root" }]));
+            ...ancestors.map((a) => ({ id: a.id, name: a.name })),
+          ]);
+        })
+        .catch(() => setBreadcrumbs([{ id: null, name: "Root" }]));
+
+      folderService
+        .get(fid)
+        .then((folder) => setCurrentFolderParentId(folder.parent_folder_id))
+        .catch(() => setCurrentFolderParentId(null));
+    } else {
+      setBreadcrumbs([{ id: null, name: "Root" }]);
+      setCurrentFolderParentId(null);
+    }
   }, []);
 
   useEffect(() => {
@@ -282,13 +293,23 @@ export default function DashboardPage() {
       </div>
 
       <div className={styles.content}>
-        {!hasContent ? (
+        {currentFolderId && (
+          <div className={styles.gridRow} onClick={() => navigateToFolder(currentFolderParentId)}>
+            <span className={styles.rowIcon}>&#128281;</span>
+            <span className={styles.rowName} style={{ fontStyle: "italic", color: "var(--muted)" }}>..</span>
+            <span className={styles.rowSize}>-</span>
+            <span className={styles.rowDate}>-</span>
+            <span className={styles.rowActions}></span>
+          </div>
+        )}
+
+        {!hasContent && !currentFolderId ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>&#128193;</div>
             <p>This folder is empty</p>
             <p style={{ fontSize: "0.85rem" }}>Upload a file or create a folder to get started</p>
           </div>
-        ) : (
+        ) : hasContent ? (
           <>
             <div className={styles.gridHeader}>
               <span></span>
@@ -341,7 +362,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </>
-        )}
+        ) : null}
       </div>
 
       {showCreateDialog && (

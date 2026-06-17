@@ -22,6 +22,11 @@ export interface File {
   expires_at: string | null;
 }
 
+export interface AncestorFolder {
+  id: string;
+  name: string;
+}
+
 export interface Folder {
   id: string;
   user_id: string;

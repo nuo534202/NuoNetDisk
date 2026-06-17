@@ -214,6 +214,41 @@ func (r *FolderRepository) Restore(ctx context.Context, id uuid.UUID, userID uui
 	return nil
 }
 
+type ancestorRow struct {
+	ID             uuid.UUID
+	Name           string
+	ParentFolderID *uuid.UUID
+}
+
+func (r *FolderRepository) GetAncestors(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) ([]ancestorRow, error) {
+	query := `
+		WITH RECURSIVE ancestors AS (
+			SELECT id, name, parent_folder_id, 0 AS depth
+			FROM folders WHERE id = $1 AND user_id = $2 AND is_deleted = FALSE
+			UNION ALL
+			SELECT f.id, f.name, f.parent_folder_id, a.depth + 1
+			FROM folders f
+			JOIN ancestors a ON f.id = a.parent_folder_id
+			WHERE f.is_deleted = FALSE
+		)
+		SELECT id, name, parent_folder_id FROM ancestors ORDER BY depth DESC`
+	rows, err := r.pool.Query(ctx, query, folderID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []ancestorRow
+	for rows.Next() {
+		var row ancestorRow
+		if err := rows.Scan(&row.ID, &row.Name, &row.ParentFolderID); err != nil {
+			return nil, err
+		}
+		result = append(result, row)
+	}
+	return result, rows.Err()
+}
+
 func (r *FolderRepository) IsDescendant(ctx context.Context, folderID, ancestorID uuid.UUID, userID uuid.UUID) (bool, error) {
 	query := `
 		WITH RECURSIVE ancestors AS (

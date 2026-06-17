@@ -1,5 +1,5 @@
 import { api } from "./api";
-import type { Folder } from "../types";
+import type { AncestorFolder, Folder } from "../types";
 
 export const folderService = {
   create: (name: string, parentFolderId?: string | null) =>
@@ -11,6 +11,9 @@ export const folderService = {
   },
 
   get: (folderId: string) => api.get<Folder>(`/folders/${folderId}`),
+
+  getAncestors: (folderId: string) =>
+    api.get<AncestorFolder[]>(`/folders/${folderId}/ancestors`),
 
   update: (folderId: string, data: { name?: string; parent_folder_id?: string | null }) =>
     api.patch<Folder>(`/folders/${folderId}`, data),

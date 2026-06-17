@@ -281,6 +281,15 @@ components:
           format: uuid
           nullable: true
 
+    AncestorFolder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
     UpdateFolderRequest:
       type: object
       properties:
@@ -785,6 +794,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+    /ancestors:
+      get:
+        tags:
+          - Folders
+        summary: Get folder ancestor chain from root to the given folder
+        operationId: getFolderAncestors
+        security:
+          - BearerAuth: []
+        parameters:
+          - name: folderId
+            in: path
+            required: true
+            schema:
+              type: string
+              format: uuid
+        responses:
+          "200":
+            description: Ancestor chain (root first, current folder last)
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/AncestorFolder"
+          "401":
+            description: Unauthenticated
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
+          "404":
+            description: Folder not found
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/ErrorResponse"
 
     patch:
       tags:

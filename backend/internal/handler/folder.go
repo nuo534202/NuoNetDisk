@@ -7,8 +7,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nuonuo/nuonetdisk/internal/service"
-	"github.com/nuonuo/nuonetdisk/pkg/nullable"
 	httputil "github.com/nuonuo/nuonetdisk/pkg/httputil"
+	"github.com/nuonuo/nuonetdisk/pkg/nullable"
 )
 
 type FolderHandler struct {
@@ -86,6 +86,27 @@ func (h *FolderHandler) GetByID(c *gin.Context) {
 	}
 
 	result, err := h.folderService.GetByID(c.Request.Context(), folderID, *userID)
+	if err != nil {
+		httputil.RespondServiceError(c, err)
+		return
+	}
+
+	httputil.RespondJSON(c, http.StatusOK, result)
+}
+
+func (h *FolderHandler) GetAncestors(c *gin.Context) {
+	userID := getUserID(c)
+	if userID == nil {
+		return
+	}
+
+	folderID, err := uuid.Parse(c.Param("folderId"))
+	if err != nil {
+		httputil.RespondError(c, http.StatusBadRequest, "INVALID_INPUT", "Invalid folder ID")
+		return
+	}
+
+	result, err := h.folderService.GetAncestors(c.Request.Context(), folderID, *userID)
 	if err != nil {
 		httputil.RespondServiceError(c, err)
 		return
