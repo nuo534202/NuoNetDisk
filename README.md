@@ -1,192 +1,89 @@
 # NuoNetDisk
 
-A cloud storage application with a Go/Gin backend and React/TypeScript frontend.
+NuoNetDisk is a self-hosted cloud storage platform. Upload, organize, and share your files through your browser — no third-party cloud provider required.
 
-## Tech Stack
+## Features
 
-| Layer | Technology |
-|---|---|
-| Backend | Go, Gin framework |
-| Frontend | React, TypeScript, Vite |
-| Metadata DB | PostgreSQL |
-| File Storage | MinIO (S3-compatible) |
-| Auth | JWT (access + refresh token rotation) |
-
-## Prerequisites
-
-- Docker & Docker Compose
+- **File management** — Upload, download, rename, and organize files in a folder hierarchy.
+- **Folder navigation** — Create folders, drill into subdirectories, and navigate with breadcrumb trails.
+- **Share via links** — Generate share links for files or folders with read/write permissions and optional expiration. Revoke anytime.
+- **Recycle bin** — Deleted files and folders are soft-deleted with automatic expiration. Restore them before they're permanently removed.
+- **Account management** — Register with email and password, update your display name, and manage your session.
+- **JWT authentication** — Login state persists with access + refresh token rotation. Session ends on sign out.
+- **End-to-end self-hosted** — Your data stays on your infrastructure. No data leaves your PostgreSQL and MinIO instances.
 
 ## Quick Start
 
+Requires Docker and Docker Compose.
+
 ```bash
-# Copy environment config
+# 1. Clone the repository
+git clone git@github.com:nuo534202/NuoNetDisk.git
+cd nuonetdisk
+
+# 2. Copy environment config
 cp .env.example .env
 
-# Start everything — PostgreSQL, MinIO, backend, and frontend
+# 3. Start the application
 docker compose up -d
 ```
 
-Open `http://localhost:3000` in your browser. The first build takes a minute (frontend compiles inside Docker).
+Open **http://localhost:3000** in your browser. The first startup may take a minute while the frontend compiles.
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8080 |
-| MinIO Console | http://localhost:9001 |
+### What runs inside Docker
 
-## Manual Setup (for development)
-
-Run only the infrastructure in Docker, then run the backend and frontend natively for hot reload.
-
-### 1. Infrastructure
-
-```bash
-docker compose up -d postgres minio
-```
-
-### 2. Configuration
-
-```bash
-cp .env.example .env
-```
-
-Key settings:
-
-| Variable | Default | Description |
+| Service | Access | Purpose |
 |---|---|---|
-| `DATABASE_URL` | `postgres://nuonetdisk:nuonetdisk_dev@localhost:5432/nuonetdisk?sslmode=disable` | PostgreSQL connection |
-| `MINIO_ENDPOINT` | `localhost:9000` | MinIO server address |
-| `MINIO_ACCESS_KEY` | `nuonetdisk` | MinIO access key |
-| `MINIO_SECRET_KEY` | `nuonetdisk_dev` | MinIO secret key |
-| `JWT_SECRET` | `change-me-in-production` | JWT signing key |
-| `SERVER_PORT` | `8080` | Backend HTTP port |
-| `FRONTEND_PORT` | `3000` | Frontend container host port |
+| Frontend | http://localhost:3000 | Web interface |
+| Backend API | http://localhost:8080 | REST API |
+| MinIO Console | http://localhost:9001 | Object storage admin |
 
-### 3. Backend
+## Getting started
 
-```bash
-cd backend
-go mod download
-go run ./cmd/server/
-```
+1. Open http://localhost:3000 and click **Create one** to register a new account.
+2. Enter your email and password (at least 8 characters).
+3. Sign in and upload your first file via the **Upload file** button.
+4. Create folders to stay organized — use the **+ New folder** button.
+5. Download files with the download button next to each file entry.
+6. Deleted files go to **Recycle bin** (accessible from the top bar) where you can restore or permanently delete them.
+7. Share files with others by creating share links (API feature — see API documentation for details).
 
-Migrations run automatically on startup. Backend listens on `http://localhost:8080`.
+## Default configuration
 
-### 4. Frontend
+Default credentials and ports are set in `.env.example`. Change these before any production use:
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Dev server starts on `http://localhost:5173`. The frontend sends API requests to `http://localhost:8080/api/v1` (configure `VITE_API_BASE_URL` to change the target).
-
-## Project Structure
-
-```
-nuonetdisk/
-├── api/
-│   └── openapi.yaml            # API specification (OpenAPI 3.0)
-├── backend/
-│   ├── cmd/server/main.go      # Application entry point
-│   ├── internal/
-│   │   ├── auth/               # JWT, bcrypt, refresh tokens
-│   │   ├── config/             # Environment-based configuration
-│   │   ├── handler/            # HTTP handlers
-│   │   ├── middleware/         # Auth, CORS, rate limiter, logger, recovery
-│   │   ├── model/              # Domain models and error types
-│   │   ├── repository/         # PostgreSQL data access layer
-│   │   ├── service/            # Business logic layer
-│   │   └── storage/            # MinIO file storage client
-│   ├── migrations/             # SQL migration files
-│   └── pkg/httputil/           # HTTP utilities (responses, pagination)
-├── frontend/
-│   ├── src/
-│   │   ├── pages/              # Route page components
-│   │   ├── services/           # API client services
-│   │   ├── store/              # Auth context
-│   │   └── types/              # TypeScript type definitions
-│   ├── Dockerfile              # Multi-stage frontend build
-│   ├── nginx.conf              # Nginx config with API proxy
-│   └── vite.config.ts
-├── docker-compose.yml          # PostgreSQL + MinIO + backend + frontend
-├── .env.example                # Environment config template
-├── AGENTS.md                   # Agent instructions
-└── README.md
-```
-
-## API Endpoints
-
-All endpoints are prefixed with `/api/v1`.
-
-### Auth
-| Method | Path | Description |
+| Setting | Default (dev) | Note |
 |---|---|---|
-| POST | `/auth/register` | Create account |
-| POST | `/auth/login` | Sign in |
-| POST | `/auth/refresh` | Refresh access token |
-| POST | `/auth/logout` | Sign out |
+| JWT secret | `change-me-in-production` | **Must change before production** |
+| PostgreSQL password | `nuonetdisk_dev` | Change for production |
+| MinIO password | `nuonetdisk_dev` | Change for production |
+| Max upload size | 100 MB | Configurable via `MAX_UPLOAD_SIZE` |
+| Recycle bin expiry | 30 days | Configurable via `RECYCLE_BIN_EXPIRY` |
 
-### User
-| Method | Path | Description |
-|---|---|---|
-| GET | `/user/me` | Get current user profile |
-| PATCH | `/user/me` | Update display name |
+## Security
 
-### Files
-| Method | Path | Description |
-|---|---|---|
-| GET | `/files` | List files (query: `folder_id`, `offset`, `limit`) |
-| POST | `/files` | Upload file (multipart form) |
-| GET | `/files/:fileId` | Get file metadata |
-| GET | `/files/:fileId/download` | Download file content |
-| PATCH | `/files/:fileId` | Rename or move file |
-| DELETE | `/files/:fileId` | Soft-delete file |
+- Passwords are hashed with bcrypt.
+- File contents are stored in MinIO, never in the database.
+- All file operations require authentication and authorization.
+- File metadata (names, sizes) is stored in PostgreSQL; actual file objects are opaque keys in MinIO.
+- Uploads are streamed directly to storage — no temporary files on disk.
+- Share links are revocable, expirable, and scoped by permission.
+- Download URLs are served through the backend — MinIO object keys are never exposed to the frontend.
 
-### Folders
-| Method | Path | Description |
-|---|---|---|
-| POST | `/folders` | Create folder |
-| GET | `/folders` | List folders (query: `parent_id`) |
-| GET | `/folders/:folderId` | Get folder metadata |
-| PATCH | `/folders/:folderId` | Rename or move folder |
-| DELETE | `/folders/:folderId` | Soft-delete folder |
+## Architecture overview
 
-### Shares
-| Method | Path | Description |
-|---|---|---|
-| POST | `/shares` | Create share link |
-| DELETE | `/shares/:shareId` | Revoke share link |
-| GET | `/shares/token/:token` | Access shared resource |
+NuoNetDisk uses three storage layers that work together:
 
-### Recycle Bin
-| Method | Path | Description |
-|---|---|---|
-| GET | `/recycle-bin/files` | List deleted files |
-| GET | `/recycle-bin/folders` | List deleted folders |
-| POST | `/recycle-bin/restore/file/:fileId` | Restore file |
-| POST | `/recycle-bin/restore/folder/:folderId` | Restore folder |
-| DELETE | `/recycle-bin/file/:fileId` | Permanently delete file |
-| DELETE | `/recycle-bin/folder/:folderId` | Permanently delete folder |
+- **PostgreSQL** — Stores metadata: users, files, folders, shares, recycle bin state.
+- **MinIO** — Stores the actual file objects (S3-compatible API).
+- **Backend (Go/Gin)** — REST API that mediates between the frontend, database, and object storage.
 
-## Dev Scripts
+The frontend is a single-page application built with React and TypeScript (Vite).
 
-### Backend
+## Development
 
-```bash
-go build ./...           # Compile
-go vet ./...             # Static analysis
-go test ./...            # Run tests
-gofmt -d .               # Check formatting
-```
+See [AGENTS.md](./AGENTS.md) for project conventions and [api/openapi.yaml](./api/openapi.yaml) for the full API contract.
 
-### Frontend
+## License
 
-```bash
-npm run dev              # Start dev server
-npm run build            # Type-check and build
-npm run typecheck        # TypeScript check only
-npm run lint             # ESLint
-npm run test             # Run tests
-```
+See [LICENSE](./LICENSE) for details.
