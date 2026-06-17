@@ -39,10 +39,12 @@ type FolderDTO struct {
 	Version        int        `json:"version"`
 	CreatedAt      string     `json:"created_at"`
 	UpdatedAt      string     `json:"updated_at"`
+	DeletedAt      *string    `json:"deleted_at,omitempty"`
+	ExpiresAt      *string    `json:"expires_at,omitempty"`
 }
 
 func folderToDTO(f *model.Folder) FolderDTO {
-	return FolderDTO{
+	dto := FolderDTO{
 		ID:             f.ID,
 		UserID:         f.UserID,
 		Name:           f.Name,
@@ -51,6 +53,13 @@ func folderToDTO(f *model.Folder) FolderDTO {
 		CreatedAt:      f.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      f.UpdatedAt.Format(time.RFC3339),
 	}
+	if f.DeletedAt != nil {
+		deletedAt := f.DeletedAt.Format(time.RFC3339)
+		dto.DeletedAt = &deletedAt
+		expiresAt := f.DeletedAt.Add(recycleBinRetentionDays * 24 * time.Hour).Format(time.RFC3339)
+		dto.ExpiresAt = &expiresAt
+	}
+	return dto
 }
 
 func (s *FolderService) Create(ctx context.Context, userID uuid.UUID, name string, parentFolderID *uuid.UUID) (*FolderDTO, error) {

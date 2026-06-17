@@ -50,10 +50,14 @@ type FileDTO struct {
 	Version        int        `json:"version"`
 	CreatedAt      string     `json:"created_at"`
 	UpdatedAt      string     `json:"updated_at"`
+	DeletedAt      *string    `json:"deleted_at,omitempty"`
+	ExpiresAt      *string    `json:"expires_at,omitempty"`
 }
 
+const recycleBinRetentionDays = 30
+
 func fileToDTO(f *model.File) FileDTO {
-	return FileDTO{
+	dto := FileDTO{
 		ID:             f.ID,
 		UserID:         f.UserID,
 		Name:           f.Name,
@@ -65,6 +69,13 @@ func fileToDTO(f *model.File) FileDTO {
 		CreatedAt:      f.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:      f.UpdatedAt.Format(time.RFC3339),
 	}
+	if f.DeletedAt != nil {
+		deletedAt := f.DeletedAt.Format(time.RFC3339)
+		dto.DeletedAt = &deletedAt
+		expiresAt := f.DeletedAt.Add(recycleBinRetentionDays * 24 * time.Hour).Format(time.RFC3339)
+		dto.ExpiresAt = &expiresAt
+	}
+	return dto
 }
 
 func (s *FileService) Upload(ctx context.Context, userID uuid.UUID, fileHeader *multipart.FileHeader, parentFolderID *uuid.UUID) (*FileDTO, error) {

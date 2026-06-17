@@ -18,6 +18,8 @@ export interface File {
   version: number;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
+  expires_at: string | null;
 }
 
 export interface Folder {
@@ -29,6 +31,8 @@ export interface Folder {
   version: number;
   created_at: string;
   updated_at: string;
+  deleted_at: string | null;
+  expires_at: string | null;
 }
 
 export interface ShareLink {

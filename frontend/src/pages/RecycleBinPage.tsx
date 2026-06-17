@@ -4,9 +4,27 @@ import { recycleBinService } from "../services/recycleBin";
 import type { File, Folder } from "../types";
 import styles from "./RecycleBinPage.module.css";
 
-function formatDate(dateStr: string): string {
+function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatExpiration(expiresAt: string): string {
+  const now = Date.now();
+  const expiry = new Date(expiresAt).getTime();
+  const diffMs = expiry - now;
+  if (diffMs <= 0) return "Expired";
+  const totalHours = Math.floor(diffMs / (60 * 60 * 1000));
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  if (days > 0) return `${days}d ${hours}h remaining`;
+  return `${totalHours}h remaining`;
 }
 
 type Tab = "files" | "folders";
@@ -97,7 +115,8 @@ export default function RecycleBinPage() {
             <div className={styles.gridHeader}>
               <span></span>
               <span>Name</span>
-              <span>Deleted</span>
+              <span>Deleted at</span>
+              <span>Expires in</span>
               <span></span>
             </div>
 
@@ -110,7 +129,12 @@ export default function RecycleBinPage() {
                 <div key={item.id} className={styles.gridRow}>
                   <span className={styles.rowIcon}>{isFile ? "\u{1F4C4}" : "\u{1F4C1}"}</span>
                   <span className={styles.rowName}>{item.name}</span>
-                  <span className={styles.rowDate}>{formatDate(item.updated_at)}</span>
+                  <span className={styles.rowDate}>
+                    {item.deleted_at ? formatDateTime(item.deleted_at) : "-"}
+                  </span>
+                  <span className={styles.rowExpiry}>
+                    {item.expires_at ? formatExpiration(item.expires_at) : "-"}
+                  </span>
                   <span className={styles.rowActions}>
                     <button
                       className={`${styles.actionBtn} ${styles.restoreBtn}`}
