@@ -35,6 +35,11 @@ export default function DashboardPage() {
   const [newFolderName, setNewFolderName] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  const [renameTarget, setRenameTarget] = useState<{ type: "file" | "folder"; id: string; name: string } | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+  const [showExtWarning, setShowExtWarning] = useState(false);
+  const [pendingRenameValue, setPendingRenameValue] = useState("");
+
   const currentFolderId = folderId || null;
 
   const reload = useCallback((fid: string | null) => {
@@ -125,6 +130,54 @@ export default function DashboardPage() {
     }
   }
 
+  function openRename(type: "file" | "folder", id: string, name: string) {
+    setRenameTarget({ type, id, name });
+    setRenameValue(name);
+  }
+
+  function getExtension(name: string): string {
+    const dot = name.lastIndexOf(".");
+    return dot > 0 ? name.slice(dot) : "";
+  }
+
+  async function performRename(id: string, type: "file" | "folder", newName: string) {
+    try {
+      if (type === "file") {
+        await fileService.update(id, { name: newName });
+      } else {
+        await folderService.update(id, { name: newName });
+      }
+      setRenameTarget(null);
+      setRenameValue("");
+      reload(currentFolderId);
+    } catch {
+      // error handled silently
+    }
+  }
+
+  function handleRename(e: FormEvent) {
+    e.preventDefault();
+    if (!renameTarget || !renameValue.trim()) return;
+    const newName = renameValue.trim();
+    if (renameTarget.type === "file") {
+      const oldExt = getExtension(renameTarget.name);
+      const newExt = getExtension(newName);
+      if (oldExt && newExt && oldExt !== newExt) {
+        setPendingRenameValue(newName);
+        setShowExtWarning(true);
+        return;
+      }
+    }
+    performRename(renameTarget.id, renameTarget.type, newName);
+  }
+
+  function confirmExtChange() {
+    if (!renameTarget || !pendingRenameValue) return;
+    performRename(renameTarget.id, renameTarget.type, pendingRenameValue);
+    setShowExtWarning(false);
+    setPendingRenameValue("");
+  }
+
   const hasContent = folders.length > 0 || files.length > 0;
 
   return (
@@ -193,6 +246,9 @@ export default function DashboardPage() {
                 <span className={styles.rowSize}>-</span>
                 <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
                 <span className={styles.rowActions}>
+                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("folder", f.id, f.name); }} title="Rename">
+                    &#9998;
+                  </button>
                   <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id); }} title="Delete">
                     &#128465;
                   </button>
@@ -207,6 +263,9 @@ export default function DashboardPage() {
                 <span className={styles.rowSize}>{formatSize(f.size)}</span>
                 <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
                 <span className={styles.rowActions}>
+                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("file", f.id, f.name); }} title="Rename">
+                    &#9998;
+                  </button>
                   <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
                     &#8595;
                   </button>
@@ -242,6 +301,52 @@ export default function DashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {renameTarget && (
+        <div className={styles.dialog} onClick={() => setRenameTarget(null)}>
+          <div className={styles.dialogCard} onClick={(e) => e.stopPropagation()}>
+            <h2 className={styles.dialogTitle}>Rename {renameTarget.type === "file" ? "file" : "folder"}</h2>
+            <form onSubmit={handleRename}>
+              <input
+                className={styles.dialogInput}
+                type="text"
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                placeholder="New name"
+                autoFocus
+              />
+              <div className={styles.dialogActions}>
+                <button type="button" className={styles.dialogCancel} onClick={() => setRenameTarget(null)}>
+                  Cancel
+                </button>
+                <button type="submit" className={styles.dialogConfirm}>
+                  Rename
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showExtWarning && (
+        <div className={styles.dialog}>
+          <div className={styles.dialogCard}>
+            <h2 className={styles.dialogTitle}>Change file extension?</h2>
+            <p style={{ marginBottom: "1rem", color: "var(--muted)", fontSize: "0.9rem", lineHeight: "1.5" }}>
+              You are about to change the extension from <strong>{getExtension(renameTarget?.name || "")}</strong> to <strong>{getExtension(pendingRenameValue)}</strong>.
+              This may make the file unusable. Are you sure?
+            </p>
+            <div className={styles.dialogActions}>
+              <button type="button" className={styles.dialogCancel} onClick={() => { setShowExtWarning(false); setPendingRenameValue(""); }}>
+                Cancel
+              </button>
+              <button type="button" className={styles.dialogConfirm} onClick={confirmExtChange}>
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}
