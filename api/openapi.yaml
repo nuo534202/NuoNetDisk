@@ -49,6 +49,9 @@ components:
           format: email
         display_name:
           type: string
+        user_hash:
+          type: string
+          description: 10-character hex hash derived from user UUID, used in URL paths
         created_at:
           type: string
           format: date-time
@@ -299,6 +302,16 @@ components:
           type: string
           format: uuid
           nullable: true
+
+    ResolvedFolder:
+      type: object
+      properties:
+        folder:
+          $ref: "#/components/schemas/Folder"
+        ancestors:
+          type: array
+          items:
+            $ref: "#/components/schemas/AncestorFolder"
 
 paths:
   /auth/register:
@@ -755,6 +768,88 @@ paths:
                 $ref: "#/components/schemas/PaginatedFolders"
         "401":
           description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /folders/resolve:
+    get:
+      tags:
+        - Folders
+      summary: Resolve a root-level folder name to folder metadata
+      operationId: resolveFolderByName
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Folder name to resolve (only searches root-level folders)
+      responses:
+        "200":
+          description: Folder found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Folder"
+        "400":
+          description: Missing name parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Folder not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /folders/resolve-by-path:
+    get:
+      tags:
+        - Folders
+      summary: Resolve a full folder path to folder metadata and ancestors
+      operationId: resolveFolderByPath
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: path
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Folder path to resolve (e.g. "SAKA/2.2.1")
+      responses:
+        "200":
+          description: Folder found with ancestor chain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResolvedFolder"
+        "400":
+          description: Missing path parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Folder not found at path
           content:
             application/json:
               schema:

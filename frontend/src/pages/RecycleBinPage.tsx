@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../store/useAuth";
 import { recycleBinService } from "../services/recycleBin";
 import type { File, Folder } from "../types";
 import styles from "./RecycleBinPage.module.css";
@@ -30,6 +31,7 @@ function formatExpiration(expiresAt: string): string {
 type Tab = "files" | "folders";
 
 export default function RecycleBinPage() {
+  const { user } = useAuth();
   const [tab, setTab] = useState<Tab>("files");
   const [files, setFiles] = useState<File[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -85,7 +87,7 @@ export default function RecycleBinPage() {
       <header className={styles.header}>
         <span className={styles.logo}>Recycle Bin</span>
         <div className={styles.headerActions}>
-          <Link to="/" className={styles.linkBtn}>Back to files</Link>
+          <Link to={`/${user?.user_hash}`} className={styles.linkBtn}>Back to files</Link>
         </div>
       </header>
 

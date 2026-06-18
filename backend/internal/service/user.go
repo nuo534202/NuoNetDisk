@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/nuonuo/nuonetdisk/internal/auth"
 	"github.com/nuonuo/nuonetdisk/internal/model"
 	"github.com/nuonuo/nuonetdisk/internal/repository"
 )
@@ -22,6 +23,7 @@ type UserDTO struct {
 	ID          uuid.UUID `json:"id"`
 	Email       string    `json:"email"`
 	DisplayName string    `json:"display_name"`
+	UserHash    string    `json:"user_hash"`
 	CreatedAt   string    `json:"created_at"`
 	UpdatedAt   string    `json:"updated_at"`
 }
@@ -31,6 +33,7 @@ func userToDTO(u *model.User) UserDTO {
 		ID:          u.ID,
 		Email:       u.Email,
 		DisplayName: u.DisplayName,
+		UserHash:    auth.UserIDToHash(u.ID),
 		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:   u.UpdatedAt.Format(time.RFC3339),
 	}

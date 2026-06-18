@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/useAuth";
 import { fileService } from "../services/files";
 import { folderService } from "../services/folders";
@@ -31,13 +31,18 @@ function getFileLocation(file: AppFile, crumbs: BreadcrumbItem[]): string {
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
-  const { folderId } = useParams<{ folderId: string }>();
+  const params = useParams();
+  const folderPath = params["*"] || "";
+  const pathSegments = folderPath ? folderPath.split("/").filter(Boolean) : [];
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [files, setFiles] = useState<AppFile[]>([]);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([{ id: null, name: "Root" }]);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [currentFolderParentId, setCurrentFolderParentId] = useState<string | null>(null);
+  const [resolving, setResolving] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -56,7 +61,44 @@ export default function DashboardPage() {
 
   const [detailsFile, setDetailsFile] = useState<AppFile | null>(null);
 
-  const currentFolderId = folderId || null;
+  const pendingNavRef = useRef<{ id: string; name: string } | null>(null);
+  const currentFolderNameRef = useRef("");
+
+  useEffect(() => {
+    if (pendingNavRef.current) {
+      const nav = pendingNavRef.current;
+      pendingNavRef.current = null;
+      setCurrentFolderId(nav.id);
+      currentFolderNameRef.current = nav.name;
+      setResolving(false);
+      return;
+    }
+
+    if (pathSegments.length === 0) {
+      setCurrentFolderId(null);
+      currentFolderNameRef.current = "";
+      setResolving(false);
+      return;
+    }
+
+    setResolving(true);
+    const pathStr = pathSegments.join("/");
+    folderService
+      .resolveByPath(pathStr)
+      .then((result) => {
+        setCurrentFolderId(result.folder.id);
+        currentFolderNameRef.current = result.folder.name;
+        setResolving(false);
+      })
+      .catch(() => {
+        const hash = user?.user_hash;
+        if (hash) {
+          window.history.pushState({}, "", `/${hash}`);
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        }
+        setResolving(false);
+      });
+  }, [folderPath, user?.user_hash]);
 
   const reload = useCallback((fid: string | null) => {
     Promise.all([
@@ -94,13 +136,40 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    reload(currentFolderId);
-  }, [currentFolderId, reload]);
+    if (!resolving) {
+      reload(currentFolderId);
+    }
+  }, [currentFolderId, resolving, reload]);
 
-  function navigateToFolder(fid: string | null) {
-    const path = fid ? `/folder/${fid}` : "/";
-    window.history.pushState({}, "", path);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+  function navigateToFolder(fid: string | null, fname?: string) {
+    const hash = user?.user_hash;
+    if (!hash) return;
+
+    if (fid && fname) {
+      pendingNavRef.current = { id: fid, name: fname };
+      const newPath = pathSegments.length > 0
+        ? [...pathSegments, encodeURIComponent(fname)].join("/")
+        : encodeURIComponent(fname);
+      navigate(`/${hash}/${newPath}`);
+    } else {
+      navigate(`/${hash}`);
+    }
+  }
+
+  function navigateToParent(parentFid: string | null) {
+    if (!parentFid || pathSegments.length <= 1) {
+      navigateToFolder(null);
+      return;
+    }
+    const parentPath = pathSegments.slice(0, -1).join("/");
+    const parentCrumb = breadcrumbs.length > 1 ? breadcrumbs[breadcrumbs.length - 2] : null;
+    if (parentCrumb && parentCrumb.id) {
+      pendingNavRef.current = { id: parentCrumb.id, name: parentCrumb.name };
+    }
+    const hash = user?.user_hash;
+    if (hash) {
+      navigate(`/${hash}/${parentPath}`);
+    }
   }
 
   async function handleCreateFolder(e: FormEvent) {
@@ -176,6 +245,14 @@ export default function DashboardPage() {
       setRenameTarget(null);
       setRenameValue("");
       reload(currentFolderId);
+
+      if (type === "folder" && id === currentFolderId) {
+        const hash = user?.user_hash;
+        if (hash) {
+          const newPath = [...pathSegments.slice(0, -1), encodeURIComponent(newName)].join("/");
+          navigate(`/${hash}/${newPath}`);
+        }
+      }
     } catch {
       // error handled silently
     }
@@ -256,6 +333,10 @@ export default function DashboardPage() {
     }
   }
 
+  if (resolving) {
+    return <div className={styles.container}><div className={styles.empty}><p>Loading...</p></div></div>;
+  }
+
   const hasContent = folders.length > 0 || files.length > 0;
 
   return (
@@ -264,8 +345,8 @@ export default function DashboardPage() {
         <span className={styles.logo}>NuoNetDisk</span>
         <div className={styles.headerActions}>
           <span className={styles.userInfo}>{user?.display_name}</span>
-          <Link to="/recycle-bin" className={styles.linkBtn}>Recycle bin</Link>
-          <Link to="/profile" className={styles.linkBtn}>Profile</Link>
+          <a href="/recycle-bin" className={styles.linkBtn}>Recycle bin</a>
+          <a href="/profile" className={styles.linkBtn}>Profile</a>
           <button className={styles.logoutBtn} onClick={logout}>Sign out</button>
         </div>
       </header>
@@ -292,7 +373,15 @@ export default function DashboardPage() {
             {i === breadcrumbs.length - 1 ? (
               <span className={styles.breadcrumbCurrent}>{item.name}</span>
             ) : (
-              <span className={styles.breadcrumbLink} onClick={() => navigateToFolder(item.id)}>
+              <span className={styles.breadcrumbLink} onClick={() => {
+                const targetPath = pathSegments.slice(0, i).join("/");
+                const hash = user?.user_hash;
+                if (!hash) return;
+                if (item.id) {
+                  pendingNavRef.current = { id: item.id, name: item.name };
+                }
+                navigate(targetPath ? `/${hash}/${targetPath}` : `/${hash}`);
+              }}>
                 {item.name}
               </span>
             )}
@@ -302,7 +391,7 @@ export default function DashboardPage() {
 
       <div className={styles.content}>
         {currentFolderId && (
-          <div className={styles.gridRow} onClick={() => navigateToFolder(currentFolderParentId)}>
+          <div className={styles.gridRow} onClick={() => navigateToParent(currentFolderParentId)}>
             <span className={styles.rowIcon}>&#128281;</span>
             <span className={styles.rowName} style={{ fontStyle: "italic", color: "var(--muted)" }}>..</span>
             <span className={styles.rowSize}>-</span>
@@ -328,7 +417,7 @@ export default function DashboardPage() {
             </div>
 
             {folders.map((f) => (
-              <div key={f.id} className={styles.gridRow} onClick={() => navigateToFolder(f.id)}>
+              <div key={f.id} className={styles.gridRow} onClick={() => navigateToFolder(f.id, f.name)}>
                 <span className={styles.rowIcon}>&#128193;</span>
                 <span className={styles.rowName}>{f.name}</span>
                 <span className={styles.rowSize}>-</span>

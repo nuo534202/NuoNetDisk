@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from "react-router-dom";
 import { AuthProvider } from "./store/AuthContext";
 import { useAuth } from "./store/useAuth";
+import { folderService } from "./services/folders";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -8,6 +9,7 @@ import ProfilePage from "./pages/ProfilePage";
 import RecycleBinPage from "./pages/RecycleBinPage";
 import SharedPage from "./pages/SharedPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -38,6 +40,37 @@ function PublicRoute({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function HomeRedirect() {
+  const { isAuthenticated, isLoading, user } = useAuth();
+  if (isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
+  return <Navigate to={`/${user.user_hash}`} replace />;
+}
+
+function OldFolderRedirect() {
+  const { folderId } = useParams<{ folderId: string }>();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated || !user || !folderId) {
+      navigate("/login", { replace: true });
+      return;
+    }
+    folderService
+      .get(folderId)
+      .then((folder) => {
+        navigate(`/${user.user_hash}/${encodeURIComponent(folder.name)}`, { replace: true });
+      })
+      .catch(() => {
+        navigate(`/${user.user_hash}`, { replace: true });
+      });
+  }, [folderId, user, isAuthenticated, isLoading, navigate]);
+
+  return <div>Redirecting...</div>;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -58,22 +91,6 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/folder/:folderId"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
         path="/recycle-bin"
         element={
           <ProtectedRoute>
@@ -90,6 +107,31 @@ function AppRoutes() {
         }
       />
       <Route path="/s/:token" element={<SharedPage />} />
+      <Route
+        path="/folder/:folderId"
+        element={
+          <ProtectedRoute>
+            <OldFolderRedirect />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route
+        path="/:userHash"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/:userHash/*"
+        element={
+          <ProtectedRoute>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

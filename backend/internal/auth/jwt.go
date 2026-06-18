@@ -1,12 +1,22 @@
 package auth
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
+
+// UserIDToHash returns the first 10 hex characters of the SHA256 hash of a user ID.
+// This provides a unique, non-reversible identifier for URL paths without exposing
+// the raw UUID or email.
+func UserIDToHash(userID uuid.UUID) string {
+	h := sha256.Sum256([]byte(userID.String()))
+	return hex.EncodeToString(h[:])[:10]
+}
 
 type Claims struct {
 	UserID uuid.UUID `json:"user_id"`

@@ -35,7 +35,7 @@ export default function ProfilePage() {
       <header className={styles.header}>
         <span className={styles.logo}>Profile</span>
         <div className={styles.headerActions}>
-          <Link to="/" className={styles.linkBtn}>Back to files</Link>
+          <Link to={`/${user?.user_hash}`} className={styles.linkBtn}>Back to files</Link>
           <button className={styles.linkBtn} onClick={logout}>Sign out</button>
         </div>
       </header>

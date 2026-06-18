@@ -1,6 +1,11 @@
 import { api } from "./api";
 import type { AncestorFolder, Folder } from "../types";
 
+export interface ResolvedFolder {
+  folder: Folder;
+  ancestors: AncestorFolder[];
+}
+
 export const folderService = {
   create: (name: string, parentFolderId?: string | null) =>
     api.post<Folder>("/folders", { name, parent_folder_id: parentFolderId || null }),
@@ -11,6 +16,14 @@ export const folderService = {
   },
 
   get: (folderId: string) => api.get<Folder>(`/folders/${folderId}`),
+
+  resolveByName: (name: string) => {
+    return api.get<Folder>(`/folders/resolve?name=${encodeURIComponent(name)}`);
+  },
+
+  resolveByPath: (path: string) => {
+    return api.get<ResolvedFolder>(`/folders/resolve-by-path?path=${encodeURIComponent(path)}`);
+  },
 
   getAncestors: (folderId: string) =>
     api.get<AncestorFolder[]>(`/folders/${folderId}/ancestors`),

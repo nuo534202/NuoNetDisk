@@ -118,6 +118,66 @@ func (s *FolderService) GetAncestors(ctx context.Context, folderID uuid.UUID, us
 	return dtos, nil
 }
 
+type ResolvedFolder struct {
+	Folder    FolderDTO     `json:"folder"`
+	Ancestors []AncestorDTO `json:"ancestors"`
+}
+
+func (s *FolderService) ResolveByPath(ctx context.Context, userID uuid.UUID, path string) (*ResolvedFolder, error) {
+	segments := strings.Split(strings.Trim(path, "/"), "/")
+	if len(segments) == 0 || (len(segments) == 1 && segments[0] == "") {
+		return nil, model.ErrInvalidInput
+	}
+
+	var ancestors []AncestorDTO
+	var currentParentID *uuid.UUID
+
+	for i, seg := range segments {
+		var folder *model.Folder
+		var err error
+		if currentParentID == nil {
+			folder, err = s.folderRepo.GetByName(ctx, userID, seg)
+		} else {
+			folder, err = s.folderRepo.GetByNameAndParent(ctx, userID, seg, *currentParentID)
+		}
+		if err != nil {
+			return nil, err
+		}
+		if folder.IsDeleted {
+			return nil, model.ErrNotFound
+		}
+		if i < len(segments)-1 {
+			ancestors = append(ancestors, AncestorDTO{ID: folder.ID, Name: folder.Name})
+		}
+		currentParentID = &folder.ID
+	}
+
+	lastFolder, err := s.folderRepo.GetByID(ctx, *currentParentID, userID)
+	if err != nil {
+		return nil, err
+	}
+	if lastFolder.IsDeleted {
+		return nil, model.ErrNotFound
+	}
+
+	return &ResolvedFolder{
+		Folder:    folderToDTO(lastFolder),
+		Ancestors: ancestors,
+	}, nil
+}
+
+func (s *FolderService) GetByName(ctx context.Context, userID uuid.UUID, name string) (*FolderDTO, error) {
+	folder, err := s.folderRepo.GetByName(ctx, userID, name)
+	if err != nil {
+		return nil, err
+	}
+	if folder.IsDeleted {
+		return nil, model.ErrNotFound
+	}
+	dto := folderToDTO(folder)
+	return &dto, nil
+}
+
 func (s *FolderService) GetByID(ctx context.Context, folderID uuid.UUID, userID uuid.UUID) (*FolderDTO, error) {
 	folder, err := s.folderRepo.GetByID(ctx, folderID, userID)
 	if err != nil {

@@ -47,6 +47,40 @@ func (r *FolderRepository) GetByID(ctx context.Context, id uuid.UUID, userID uui
 	return folder, nil
 }
 
+func (r *FolderRepository) GetByName(ctx context.Context, userID uuid.UUID, name string) (*model.Folder, error) {
+	query := `
+		SELECT id, user_id, name, parent_folder_id, is_deleted, deleted_at, version, created_at, updated_at
+		FROM folders WHERE user_id = $1 AND name = $2 AND parent_folder_id IS NULL AND is_deleted = FALSE`
+	folder := &model.Folder{}
+	err := r.pool.QueryRow(ctx, query, userID, name).
+		Scan(&folder.ID, &folder.UserID, &folder.Name, &folder.ParentFolderID,
+			&folder.IsDeleted, &folder.DeletedAt, &folder.Version, &folder.CreatedAt, &folder.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, model.ErrNotFound
+		}
+		return nil, err
+	}
+	return folder, nil
+}
+
+func (r *FolderRepository) GetByNameAndParent(ctx context.Context, userID uuid.UUID, name string, parentID uuid.UUID) (*model.Folder, error) {
+	query := `
+		SELECT id, user_id, name, parent_folder_id, is_deleted, deleted_at, version, created_at, updated_at
+		FROM folders WHERE user_id = $1 AND name = $2 AND parent_folder_id = $3 AND is_deleted = FALSE`
+	folder := &model.Folder{}
+	err := r.pool.QueryRow(ctx, query, userID, name, parentID).
+		Scan(&folder.ID, &folder.UserID, &folder.Name, &folder.ParentFolderID,
+			&folder.IsDeleted, &folder.DeletedAt, &folder.Version, &folder.CreatedAt, &folder.UpdatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, model.ErrNotFound
+		}
+		return nil, err
+	}
+	return folder, nil
+}
+
 func (r *FolderRepository) ListByParent(ctx context.Context, userID uuid.UUID, parentID *uuid.UUID) ([]*model.Folder, error) {
 	query := `
 		SELECT id, user_id, name, parent_folder_id, is_deleted, deleted_at, version, created_at, updated_at

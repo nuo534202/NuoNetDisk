@@ -73,6 +73,48 @@ func (h *FolderHandler) List(c *gin.Context) {
 	})
 }
 
+func (h *FolderHandler) ResolveByName(c *gin.Context) {
+	userID := getUserID(c)
+	if userID == nil {
+		return
+	}
+
+	name := c.Query("name")
+	if name == "" {
+		httputil.RespondError(c, http.StatusBadRequest, "INVALID_INPUT", "Folder name is required")
+		return
+	}
+
+	result, err := h.folderService.GetByName(c.Request.Context(), *userID, name)
+	if err != nil {
+		httputil.RespondServiceError(c, err)
+		return
+	}
+
+	httputil.RespondJSON(c, http.StatusOK, result)
+}
+
+func (h *FolderHandler) ResolveByPath(c *gin.Context) {
+	userID := getUserID(c)
+	if userID == nil {
+		return
+	}
+
+	path := c.Query("path")
+	if path == "" {
+		httputil.RespondError(c, http.StatusBadRequest, "INVALID_INPUT", "Folder path is required")
+		return
+	}
+
+	result, err := h.folderService.ResolveByPath(c.Request.Context(), *userID, path)
+	if err != nil {
+		httputil.RespondServiceError(c, err)
+		return
+	}
+
+	httputil.RespondJSON(c, http.StatusOK, result)
+}
+
 func (h *FolderHandler) GetByID(c *gin.Context) {
 	userID := getUserID(c)
 	if userID == nil {

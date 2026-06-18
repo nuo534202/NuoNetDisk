@@ -111,6 +111,8 @@ func main() {
 		{
 			folders.POST("", folderHandler.Create)
 			folders.GET("", folderHandler.List)
+			folders.GET("/resolve", folderHandler.ResolveByName)
+			folders.GET("/resolve-by-path", folderHandler.ResolveByPath)
 			folders.GET("/:folderId", folderHandler.GetByID)
 			folders.GET("/:folderId/ancestors", folderHandler.GetAncestors)
 			folders.PATCH("/:folderId", folderHandler.Update)
