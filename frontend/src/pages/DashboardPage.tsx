@@ -390,79 +390,83 @@ export default function DashboardPage() {
       </div>
 
       <div className={styles.content}>
-        {currentFolderId && (
-          <div className={styles.gridRow} onClick={() => navigateToParent(currentFolderParentId)}>
-            <span className={styles.rowIcon}>&#128281;</span>
-            <span className={styles.rowName} style={{ fontStyle: "italic", color: "var(--muted)" }}>..</span>
-            <span className={styles.rowSize}>-</span>
-            <span className={styles.rowDate}>-</span>
-            <span className={styles.rowActions}></span>
-          </div>
-        )}
-
         {!hasContent && !currentFolderId ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>&#128193;</div>
             <p>This folder is empty</p>
             <p style={{ fontSize: "0.85rem" }}>Upload a file or create a folder to get started</p>
           </div>
-        ) : hasContent ? (
-          <>
-            <div className={styles.gridHeader}>
-              <span></span>
-              <span>Name</span>
-              <span>Size</span>
-              <span>Date</span>
-              <span></span>
-            </div>
-
-            {folders.map((f) => (
-              <div key={f.id} className={styles.gridRow} onClick={() => navigateToFolder(f.id, f.name)}>
-                <span className={styles.rowIcon}>&#128193;</span>
-                <span className={styles.rowName}>{f.name}</span>
+        ) : (
+          <div className={styles.gridTable}>
+            {currentFolderId && (
+              <div className={styles.gridRow} onClick={() => navigateToParent(currentFolderParentId)}>
+                <span className={styles.rowIcon}>&#128281;</span>
+                <span className={styles.rowName} style={{ fontStyle: "italic", color: "var(--muted)" }}>..</span>
                 <span className={styles.rowSize}>-</span>
-                <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
-                <span className={styles.rowActions}>
-                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("folder", f.id, f.name); }} title="Rename">
-                    &#9998;
-                  </button>
-                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("folder", f.id, f.name); }} title="Move">
-                    &#8594;
-                  </button>
-                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id); }} title="Delete">
-                    &#128465;
-                  </button>
-                </span>
+                <span className={styles.rowDate}>-</span>
+                <span className={styles.rowActions}></span>
               </div>
-            ))}
+            )}
 
-            {files.map((f) => (
-              <div key={f.id} className={styles.gridRow}>
-                <span className={styles.rowIcon}>&#128196;</span>
-                <span className={styles.rowName}>{f.name}</span>
-                <span className={styles.rowSize}>{formatSize(f.size)}</span>
-                <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
-                <span className={styles.rowActions}>
-                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); setDetailsFile(f); }} title="Details">
-                    &#8505;
-                  </button>
-                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("file", f.id, f.name); }} title="Rename">
-                    &#9998;
-                  </button>
-                  <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("file", f.id, f.name); }} title="Move">
-                    &#8594;
-                  </button>
-                  <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
-                    &#8595;
-                  </button>
-                  <button className={styles.actionBtn} onClick={() => handleDeleteFile(f.id)} title="Delete">
-                    &#128465;
-                  </button>
-                </span>
-              </div>
-            ))}
-          </>
-        ) : null}
+            {hasContent && (
+              <>
+                <div className={styles.gridHeader}>
+                  <span></span>
+                  <span>Name</span>
+                  <span>Size</span>
+                  <span>Date</span>
+                  <span>Actions</span>
+                </div>
+
+                {folders.map((f) => (
+                  <div key={f.id} className={styles.gridRow} onClick={() => navigateToFolder(f.id, f.name)}>
+                    <span className={styles.rowIcon}>&#128193;</span>
+                    <span className={styles.rowName}>{f.name}</span>
+                    <span className={styles.rowSize}>-</span>
+                    <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
+                    <span className={styles.rowActions}>
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("folder", f.id, f.name); }} title="Rename">
+                        &#9998;
+                      </button>
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("folder", f.id, f.name); }} title="Move">
+                        &#8594;
+                      </button>
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id); }} title="Delete">
+                        &#128465;
+                      </button>
+                    </span>
+                  </div>
+                ))}
+
+                {files.map((f) => (
+                  <div key={f.id} className={styles.gridRow}>
+                    <span className={styles.rowIcon}>&#128196;</span>
+                    <span className={styles.rowName}>{f.name}</span>
+                    <span className={styles.rowSize}>{formatSize(f.size)}</span>
+                    <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
+                    <span className={styles.rowActions}>
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); setDetailsFile(f); }} title="Details">
+                        &#8505;
+                      </button>
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("file", f.id, f.name); }} title="Rename">
+                        &#9998;
+                      </button>
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("file", f.id, f.name); }} title="Move">
+                        &#8594;
+                      </button>
+                      <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
+                        &#8595;
+                      </button>
+                      <button className={styles.actionBtn} onClick={() => handleDeleteFile(f.id)} title="Delete">
+                        &#128465;
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {showCreateDialog && (

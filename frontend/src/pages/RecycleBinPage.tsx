@@ -113,13 +113,13 @@ export default function RecycleBinPage() {
             <p>No deleted {tab} found</p>
           </div>
         ) : (
-          <>
+          <div className={styles.gridTable}>
             <div className={styles.gridHeader}>
               <span></span>
               <span>Name</span>
               <span>Deleted at</span>
               <span>Expires in</span>
-              <span></span>
+              <span>Actions</span>
             </div>
 
             {displayItems.map((item) => {
@@ -156,7 +156,7 @@ export default function RecycleBinPage() {
                 </div>
               );
             })}
-          </>
+          </div>
         )}
       </div>
     </div>
