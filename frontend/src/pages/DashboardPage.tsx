@@ -18,6 +18,63 @@ function formatDate(dateStr: string): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+function getFileType(ext: string): string {
+  const imageExts = [".jpg", ".jpeg", ".png", ".gif", ".svg", ".webp", ".bmp", ".ico"];
+  const videoExts = [".mp4", ".avi", ".mkv", ".mov", ".wmv", ".flv", ".webm"];
+  const audioExts = [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"];
+  const archiveExts = [".zip", ".rar", ".tar", ".gz", ".7z", ".bz2"];
+  if (imageExts.includes(ext)) return "image";
+  if (videoExts.includes(ext)) return "video";
+  if (audioExts.includes(ext)) return "audio";
+  if (archiveExts.includes(ext)) return "archive";
+  if ([".txt", ".md", ".log", ".rtf"].includes(ext)) return "text";
+  if ([".pdf"].includes(ext)) return "pdf";
+  if ([".doc", ".docx"].includes(ext)) return "word";
+  if ([".xls", ".xlsx", ".csv"].includes(ext)) return "sheet";
+  if ([".ppt", ".pptx"].includes(ext)) return "slide";
+  return "generic";
+}
+
+function SvgIcon({ path, viewBox = "0 0 20 20" }: { path: string; viewBox?: string }) {
+  return (
+    <svg width="18" height="18" viewBox={viewBox} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {path.split("|").map((d, i) => {
+        const isCircle = d.startsWith("circle:");
+        const isRect = d.startsWith("rect:");
+        if (isCircle) {
+          const [cx, cy, r] = d.replace("circle:", "").split(" ").map(Number);
+          return <circle key={i} cx={cx} cy={cy} r={r} />;
+        }
+        if (isRect) {
+          const [x, y, w, h, rx] = d.replace("rect:", "").split(" ").map(Number);
+          return <rect key={i} x={x} y={y} width={w} height={h} rx={rx || 0} />;
+        }
+        return <path key={i} d={d} />;
+      })}
+    </svg>
+  );
+}
+
+const ICON_PATHS = {
+  folder: "M2.5 5.5h6l2-2h7a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1z",
+  parentUp: "M10 17V3|M4 9l6-6 6 6",
+  image: "rect:2.5 3.5 15 13 1.5|circle:7 8 1.5|M2.5 13.5l4-4 4 4|M10.5 11.5l2-2 5 4",
+  video: "rect:2.5 3.5 15 13 1.5|M8.5 7.5l5 2.5-5 2.5v-5z",
+  audio: "M10 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6z|M13 3l-6 2v10",
+  text: "M4.5 3.5h7l5 5v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z|M11.5 3.5v5h5|M7 9.5h5|M7 12.5h5|M7 15.5h3",
+  pdf: "M4.5 3.5h7l5 5v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z|M11.5 3.5v5h5|M7.5 11V9a2 2 0 1 1 4 0v2|rect:7.5 11 4 3 0.6",
+  word: "M4.5 3.5h7l5 5v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z|M11.5 3.5v5h5|M7.5 14l1.5-5 1 3 1-3 1.5 5",
+  sheet: "M4.5 3.5h7l5 5v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z|M11.5 3.5v5h5|rect:7.5 10 5 5 0.5|M7.5 12.5h5|M10 10v5",
+  slide: "M4.5 3.5h7l5 5v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z|M11.5 3.5v5h5|M7.5 15V9.5h2V15|M10 15v-3h2v3|M12.5 15v-5.5h2V15",
+  archive: "rect:2.5 3.5 15 13 1.5|M7 8.5h6|M7 11.5h6|M10 5.5v3",
+  generic: "M4.5 3.5h7l5 5v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z|M11.5 3.5v5h5",
+  details: "circle:10 10 7.5|M10 14v-4|M10 7v-.5",
+  rename: "M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z",
+  move: "M4 10h9|M13 6l4 4-4 4",
+  download: "M3 15v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2|M10 3v10|M6 9l4 4 4-4",
+  delete: "M3.5 5.5h13|M8 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5|M5.5 5.5l.73 10.93a1 1 0 0 0 1 .93h5.54a1 1 0 0 0 1-.93L14.5 5.5",
+} as const;
+
 interface BreadcrumbItem {
   id: string | null;
   name: string;
@@ -400,10 +457,10 @@ export default function DashboardPage() {
           <div className={styles.gridTable}>
             {currentFolderId && (
               <div className={styles.gridRow} onClick={() => navigateToParent(currentFolderParentId)}>
-                <span className={styles.rowIcon}>&#128281;</span>
+                <span className={styles.rowIcon}><SvgIcon path={ICON_PATHS.parentUp} /></span>
                 <span className={styles.rowName} style={{ fontStyle: "italic", color: "var(--muted)" }}>..</span>
-                <span className={styles.rowSize}>-</span>
-                <span className={styles.rowDate}>-</span>
+                <span className={styles.rowSize}></span>
+                <span className={styles.rowDate}></span>
                 <span className={styles.rowActions}></span>
               </div>
             )}
@@ -420,19 +477,19 @@ export default function DashboardPage() {
 
                 {folders.map((f) => (
                   <div key={f.id} className={styles.gridRow} onClick={() => navigateToFolder(f.id, f.name)}>
-                    <span className={styles.rowIcon}>&#128193;</span>
+                    <span className={styles.rowIcon}><SvgIcon path={ICON_PATHS.folder} /></span>
                     <span className={styles.rowName}>{f.name}</span>
                     <span className={styles.rowSize}>-</span>
                     <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
                     <span className={styles.rowActions}>
                       <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("folder", f.id, f.name); }} title="Rename">
-                        &#9998;
+                        <SvgIcon path={ICON_PATHS.rename} />
                       </button>
                       <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("folder", f.id, f.name); }} title="Move">
-                        &#8594;
+                        <SvgIcon path={ICON_PATHS.move} />
                       </button>
                       <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); handleDeleteFolder(f.id); }} title="Delete">
-                        &#128465;
+                        <SvgIcon path={ICON_PATHS.delete} />
                       </button>
                     </span>
                   </div>
@@ -440,25 +497,27 @@ export default function DashboardPage() {
 
                 {files.map((f) => (
                   <div key={f.id} className={styles.gridRow}>
-                    <span className={styles.rowIcon}>&#128196;</span>
+                    <span className={styles.rowIcon}>
+                  <SvgIcon path={ICON_PATHS[getFileType(getExtension(f.name)) as keyof typeof ICON_PATHS] || ICON_PATHS.generic} />
+                </span>
                     <span className={styles.rowName}>{f.name}</span>
                     <span className={styles.rowSize}>{formatSize(f.size)}</span>
                     <span className={styles.rowDate}>{formatDate(f.created_at)}</span>
                     <span className={styles.rowActions}>
                       <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); setDetailsFile(f); }} title="Details">
-                        &#8505;
+                        <SvgIcon path={ICON_PATHS.details} />
                       </button>
                       <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openRename("file", f.id, f.name); }} title="Rename">
-                        &#9998;
+                        <SvgIcon path={ICON_PATHS.rename} />
                       </button>
                       <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); openMove("file", f.id, f.name); }} title="Move">
-                        &#8594;
+                        <SvgIcon path={ICON_PATHS.move} />
                       </button>
                       <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
-                        &#8595;
+                        <SvgIcon path={ICON_PATHS.download} />
                       </button>
                       <button className={styles.actionBtn} onClick={() => handleDeleteFile(f.id)} title="Delete">
-                        &#128465;
+                        <SvgIcon path={ICON_PATHS.delete} />
                       </button>
                     </span>
                   </div>

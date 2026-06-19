@@ -9,27 +9,33 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-md) var(--space-lg);
+  height: 64px;
+  padding: 0 var(--space-lg);
   border-bottom: 1px solid var(--hairline);
   background: var(--canvas);
 }
 
 .logo {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: var(--ink);
+  letter-spacing: -0.3px;
 }
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-xs);
 }
 
 .linkBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 0.85rem;
   font-size: 0.85rem;
-  padding: 0.4rem 0.8rem;
-  border-radius: var(--radius-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
   color: var(--ink);
   transition: background 0.15s;
 }
@@ -122,9 +128,12 @@
 }
 
 .rowIcon {
-  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 1.5rem;
-  text-align: center;
+  height: 1.5rem;
+  color: var(--muted);
 }
 
 .rowName {
@@ -147,12 +156,16 @@
 
 .rowActions {
   display: flex;
-  gap: var(--space-xxs);
+  gap: 0.125rem;
 }
 
 .actionBtn {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border-radius: var(--radius-sm);
   color: var(--muted);
   transition: color 0.15s, background 0.15s;
