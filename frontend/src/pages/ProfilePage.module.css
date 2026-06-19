@@ -39,6 +39,19 @@
   text-decoration: none;
 }
 
+.signOutBtn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  color: var(--error);
+  transition: background 0.15s;
+}
+
+.signOutBtn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  text-decoration: none;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;

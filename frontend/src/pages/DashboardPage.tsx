@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/useAuth";
 import { fileService } from "../services/files";
 import { folderService } from "../services/folders";
+import { getAccessToken } from "../services/api";
 import type { File as AppFile, Folder } from "../types";
 import styles from "./DashboardPage.module.css";
 
@@ -402,9 +403,16 @@ export default function DashboardPage() {
       <header className={styles.header}>
         <span className={styles.logo}>NuoNetDisk</span>
         <div className={styles.headerActions}>
-          <span className={styles.userInfo}>{user?.display_name}</span>
-          <a href="/recycle-bin" className={styles.linkBtn}>Recycle bin</a>
-          <a href="/profile" className={styles.linkBtn}>Profile</a>
+          <span className={styles.userInfo} onClick={() => navigate('/profile')}>
+            {user?.avatar_url && (
+              <img
+                src={`${user.avatar_url}?token=${encodeURIComponent(getAccessToken() || "")}`}
+                alt=""
+                className={styles.userAvatar}
+              />
+            )}
+            {user?.display_name}
+          </span>
           <button className={styles.logoutBtn} onClick={logout}>Sign out</button>
         </div>
       </header>
@@ -416,6 +424,7 @@ export default function DashboardPage() {
         <button className={styles.toolbarBtn} onClick={() => fileInputRef.current?.click()}>
           {uploading ? "Uploading..." : "Upload file"}
         </button>
+        <a href="/recycle-bin" className={styles.recycleBinBtn}>Recycle bin</a>
         <input
           ref={fileInputRef}
           className={styles.hiddenInput}

@@ -29,9 +29,28 @@
 }
 
 .userInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 0.85rem;
   font-size: 0.85rem;
   color: var(--muted);
   margin-right: var(--space-xs);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.userInfo:hover {
+  background: var(--surface-hover);
+}
+
+.userAvatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .linkBtn {
@@ -94,6 +113,24 @@
 .toolbarBtn:hover {
   background: var(--surface-hover);
   border-color: var(--ink);
+}
+
+.recycleBinBtn {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  margin-left: auto;
+  transition: background 0.15s;
+}
+
+.recycleBinBtn:hover {
+  background: var(--surface-hover);
+  text-decoration: none;
 }
 
 .breadcrumb {
