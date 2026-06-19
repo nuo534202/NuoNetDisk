@@ -49,6 +49,15 @@ components:
           format: email
         display_name:
           type: string
+        avatar_url:
+          type: string
+          description: URL of the user's avatar image
+        bio:
+          type: string
+          description: Short user biography
+        gender:
+          type: string
+          description: User gender (male, female, other, prefer_not_to_say)
         user_hash:
           type: string
           description: 10-character hex hash derived from user UUID, used in URL paths
@@ -262,6 +271,23 @@ components:
         has_more:
           type: boolean
 
+    UpdateUserRequest:
+      type: object
+      properties:
+        display_name:
+          type: string
+          description: Display name (1-100 characters)
+        avatar_url:
+          type: string
+          description: URL of the user's avatar image (max 500 characters)
+        bio:
+          type: string
+          description: Short user biography (max 2000 characters)
+        gender:
+          type: string
+          description: Gender (male, female, other, prefer_not_to_say)
+          enum: ["", male, female, other, prefer_not_to_say]
+
     UpdateFileRequest:
       type: object
       properties:
@@ -439,6 +465,45 @@ paths:
                 $ref: "#/components/schemas/User"
         "401":
           description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      tags:
+        - User
+      summary: Update current user profile
+      operationId: updateMe
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
           content:
             application/json:
               schema:

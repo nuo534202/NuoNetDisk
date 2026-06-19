@@ -118,6 +118,84 @@
   cursor: not-allowed;
 }
 
+.avatarPreview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-md);
+}
+
+.avatarImg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--hairline);
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  border-color: var(--ink);
+}
+
+.select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.select:focus {
+  border-color: var(--ink);
+}
+
+.avatarSection {
+  margin-bottom: var(--space-md);
+}
+
+.fileInput {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 8px 0;
+  color: var(--ink);
+}
+
+.fileInput::file-selector-button {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--ink);
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background 0.15s;
+}
+
+.fileInput::file-selector-button:hover {
+  background: var(--surface-hover);
+}
+
 .message {
   margin-top: var(--space-sm);
   font-size: 0.85rem;

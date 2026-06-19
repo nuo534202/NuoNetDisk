@@ -44,6 +44,9 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		"id":           user.ID,
 		"email":        user.Email,
 		"display_name": user.DisplayName,
+		"avatar_url":   user.AvatarURL,
+		"bio":          user.Bio,
+		"gender":       user.Gender,
 		"created_at":   user.CreatedAt.Format(time.RFC3339),
 		"updated_at":   user.UpdatedAt.Format(time.RFC3339),
 	})

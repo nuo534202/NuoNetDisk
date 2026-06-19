@@ -12,8 +12,14 @@ import (
 type FileStorage interface {
 	Upload(ctx context.Context, objectKey string, reader io.Reader, size int64, contentType string) error
 	Download(ctx context.Context, objectKey string) (io.ReadCloser, error)
+	Stat(ctx context.Context, objectKey string) (size int64, contentType string, err error)
 	Delete(ctx context.Context, objectKey string) error
 	Copy(ctx context.Context, srcKey, dstKey string) error
+}
+
+type ObjectInfo struct {
+	Size        int64
+	ContentType string
 }
 
 type MinioStorage struct {
@@ -62,6 +68,14 @@ func (s *MinioStorage) Download(ctx context.Context, objectKey string) (io.ReadC
 		return nil, fmt.Errorf("failed to download object: %w", err)
 	}
 	return obj, nil
+}
+
+func (s *MinioStorage) Stat(ctx context.Context, objectKey string) (int64, string, error) {
+	info, err := s.client.StatObject(ctx, s.bucket, objectKey, minio.StatObjectOptions{})
+	if err != nil {
+		return 0, "", fmt.Errorf("failed to stat object: %w", err)
+	}
+	return info.Size, info.ContentType, nil
 }
 
 func (s *MinioStorage) Delete(ctx context.Context, objectKey string) error {

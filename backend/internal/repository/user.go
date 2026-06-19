@@ -29,11 +29,11 @@ func (r *UserRepository) Create(ctx context.Context, user *model.User) error {
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
-		SELECT id, email, password_hash, display_name, created_at, updated_at
+		SELECT id, email, password_hash, display_name, avatar_url, bio, gender, created_at, updated_at
 		FROM users WHERE email = $1`
 	user := &model.User{}
 	err := r.pool.QueryRow(ctx, query, email).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt, &user.UpdatedAt)
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.AvatarURL, &user.Bio, &user.Gender, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, model.ErrNotFound
@@ -45,11 +45,11 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 
 func (r *UserRepository) GetByID(ctx context.Context, id interface{}) (*model.User, error) {
 	query := `
-		SELECT id, email, password_hash, display_name, created_at, updated_at
+		SELECT id, email, password_hash, display_name, avatar_url, bio, gender, created_at, updated_at
 		FROM users WHERE id = $1`
 	user := &model.User{}
 	err := r.pool.QueryRow(ctx, query, id).
-		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.CreatedAt, &user.UpdatedAt)
+		Scan(&user.ID, &user.Email, &user.PasswordHash, &user.DisplayName, &user.AvatarURL, &user.Bio, &user.Gender, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, model.ErrNotFound
@@ -61,9 +61,9 @@ func (r *UserRepository) GetByID(ctx context.Context, id interface{}) (*model.Us
 
 func (r *UserRepository) Update(ctx context.Context, user *model.User) error {
 	query := `
-		UPDATE users SET display_name = $2, updated_at = NOW()
+		UPDATE users SET display_name = $2, avatar_url = $3, bio = $4, gender = $5, updated_at = NOW()
 		WHERE id = $1
 		RETURNING updated_at`
-	return r.pool.QueryRow(ctx, query, user.ID, user.DisplayName).
+	return r.pool.QueryRow(ctx, query, user.ID, user.DisplayName, user.AvatarURL, user.Bio, user.Gender).
 		Scan(&user.UpdatedAt)
 }

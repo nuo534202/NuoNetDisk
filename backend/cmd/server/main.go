@@ -58,7 +58,7 @@ func main() {
 	refreshTokenRepo := repository.NewRefreshTokenRepository(dbPool)
 
 	authService := service.NewAuthService(userRepo, refreshTokenRepo, jwtService, refreshSvc, cfg.JWTAccessExpiry, cfg.JWTRefreshExpiry)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, minioStorage)
 	fileService := service.NewFileService(fileRepo, folderRepo, minioStorage, cfg.MaxUploadSize)
 	folderService := service.NewFolderService(folderRepo, fileRepo, minioStorage)
 	shareService := service.NewShareService(shareRepo, fileRepo, folderRepo, cfg.MaxShareTTL)
@@ -95,6 +95,8 @@ func main() {
 		{
 			user.GET("/me", userHandler.GetMe)
 			user.PATCH("/me", userHandler.UpdateMe)
+			user.POST("/me/avatar", userHandler.UpdateAvatar)
+			user.GET("/me/avatar", userHandler.DownloadAvatar)
 		}
 
 		files := api.Group("/files")

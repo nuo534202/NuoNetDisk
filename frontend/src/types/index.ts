@@ -2,6 +2,9 @@ export interface User {
   id: string;
   email: string;
   display_name: string;
+  avatar_url: string;
+  bio: string;
+  gender: string;
   user_hash: string;
   created_at: string;
   updated_at: string;
