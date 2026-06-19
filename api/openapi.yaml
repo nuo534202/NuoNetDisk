@@ -655,6 +655,42 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /files/{fileId}/preview:
+    get:
+      tags:
+        - Files
+      summary: Preview a file inline
+      operationId: previewFile
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: File content streamed inline with correct MIME type
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /files/{fileId}/download:
     get:
       tags:

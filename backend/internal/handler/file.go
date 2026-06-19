@@ -112,6 +112,30 @@ func (h *FileHandler) GetByID(c *gin.Context) {
 	httputil.RespondJSON(c, http.StatusOK, result)
 }
 
+func (h *FileHandler) Preview(c *gin.Context) {
+	userID := getUserID(c)
+	if userID == nil {
+		return
+	}
+
+	fileID, err := uuid.Parse(c.Param("fileId"))
+	if err != nil {
+		httputil.RespondError(c, http.StatusBadRequest, "INVALID_INPUT", "Invalid file ID")
+		return
+	}
+
+	reader, fileName, fileSize, mimeType, err := h.fileService.Preview(c.Request.Context(), fileID, *userID)
+	if err != nil {
+		httputil.RespondServiceError(c, err)
+		return
+	}
+	defer reader.Close()
+
+	c.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, fileName))
+	c.Header("Content-Length", strconv.FormatInt(fileSize, 10))
+	c.DataFromReader(http.StatusOK, fileSize, mimeType, reader, nil)
+}
+
 func (h *FileHandler) Download(c *gin.Context) {
 	userID := getUserID(c)
 	if userID == nil {

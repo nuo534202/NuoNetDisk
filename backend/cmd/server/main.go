@@ -103,6 +103,7 @@ func main() {
 			files.POST("", fileHandler.Upload)
 			files.GET("/:fileId", fileHandler.GetByID)
 			files.GET("/:fileId/download", fileHandler.Download)
+			files.GET("/:fileId/preview", fileHandler.Preview)
 			files.PATCH("/:fileId", fileHandler.Update)
 			files.DELETE("/:fileId", fileHandler.Delete)
 		}

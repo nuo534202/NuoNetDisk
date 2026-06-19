@@ -24,6 +24,8 @@ export const fileService = {
 
   downloadUrl: (fileId: string) => getDownloadUrl(`/files/${fileId}/download`),
 
+  previewUrl: (fileId: string) => getDownloadUrl(`/files/${fileId}/preview`),
+
   update: (fileId: string, data: { name?: string; parent_folder_id?: string | null }) =>
     api.patch<AppFile>(`/files/${fileId}`, data),
 

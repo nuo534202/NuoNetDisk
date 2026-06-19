@@ -117,6 +117,7 @@ export default function DashboardPage() {
   const [moveLoading, setMoveLoading] = useState(false);
 
   const [detailsFile, setDetailsFile] = useState<AppFile | null>(null);
+  const [previewFile, setPreviewFile] = useState<AppFile | null>(null);
 
   const pendingNavRef = useRef<{ id: string; name: string } | null>(null);
   const currentFolderNameRef = useRef("");
@@ -496,7 +497,7 @@ export default function DashboardPage() {
                 ))}
 
                 {files.map((f) => (
-                  <div key={f.id} className={styles.gridRow}>
+                  <div key={f.id} className={styles.gridRow} onClick={() => setPreviewFile(f)}>
                     <span className={styles.rowIcon}>
                   <SvgIcon path={ICON_PATHS[getFileType(getExtension(f.name)) as keyof typeof ICON_PATHS] || ICON_PATHS.generic} />
                 </span>
@@ -516,7 +517,7 @@ export default function DashboardPage() {
                       <button className={styles.downloadBtn} onClick={(e) => { e.stopPropagation(); handleDownload(f.id); }} title="Download">
                         <SvgIcon path={ICON_PATHS.download} />
                       </button>
-                      <button className={styles.actionBtn} onClick={() => handleDeleteFile(f.id)} title="Delete">
+                      <button className={styles.actionBtn} onClick={(e) => { e.stopPropagation(); handleDeleteFile(f.id); }} title="Delete">
                         <SvgIcon path={ICON_PATHS.delete} />
                       </button>
                     </span>
@@ -714,6 +715,70 @@ export default function DashboardPage() {
             </table>
             <div className={styles.dialogActions}>
               <button type="button" className={styles.dialogConfirm} onClick={() => setDetailsFile(null)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {previewFile && (
+        <div className={styles.dialog} onClick={() => setPreviewFile(null)}>
+          <div className={styles.previewCard} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.previewHeader}>
+              <div className={styles.previewInfo}>
+                <h2 className={styles.dialogTitle}>{previewFile.name}</h2>
+                <span className={styles.previewMeta}>{formatSize(previewFile.size)}</span>
+              </div>
+              <button
+                className={styles.actionBtn}
+                onClick={(e) => { e.stopPropagation(); handleDownload(previewFile.id); }}
+                title="Download"
+              >
+                <SvgIcon path={ICON_PATHS.download} />
+              </button>
+            </div>
+            <div className={styles.previewBody}>
+              {previewFile.mime_type.startsWith("image/") ? (
+                <img
+                  src={fileService.previewUrl(previewFile.id)}
+                  alt={previewFile.name}
+                  className={styles.previewImage}
+                />
+              ) : previewFile.mime_type.startsWith("video/") ? (
+                <video controls className={styles.previewMedia} src={fileService.previewUrl(previewFile.id)}>
+                  Your browser does not support video preview.
+                </video>
+              ) : previewFile.mime_type.startsWith("audio/") ? (
+                <audio controls className={styles.previewAudio} src={fileService.previewUrl(previewFile.id)}>
+                  Your browser does not support audio preview.
+                </audio>
+              ) : previewFile.mime_type === "application/pdf" || previewFile.mime_type.startsWith("text/") ? (
+                <iframe
+                  src={fileService.previewUrl(previewFile.id)}
+                  className={styles.previewIframe}
+                  title="File preview"
+                />
+              ) : (
+                <div className={styles.previewUnsupported}>
+                  <p>Preview not available for this file type.</p>
+                  <p className={styles.previewUnsupportedHint}>
+                    <button
+                      className={styles.dialogConfirm}
+                      onClick={() => handleDownload(previewFile.id)}
+                    >
+                      Download file
+                    </button>
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className={styles.dialogActions}>
+              <button
+                type="button"
+                className={styles.dialogConfirm}
+                onClick={() => setPreviewFile(null)}
+              >
                 Close
               </button>
             </div>

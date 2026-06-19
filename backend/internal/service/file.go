@@ -147,6 +147,23 @@ func (s *FileService) GetFile(ctx context.Context, fileID uuid.UUID, userID uuid
 	return &dto, nil
 }
 
+func (s *FileService) Preview(ctx context.Context, fileID uuid.UUID, userID uuid.UUID) (io.ReadCloser, string, int64, string, error) {
+	file, err := s.fileRepo.GetByID(ctx, fileID, userID)
+	if err != nil {
+		return nil, "", 0, "", err
+	}
+	if file.IsDeleted {
+		return nil, "", 0, "", model.ErrNotFound
+	}
+
+	reader, err := s.storage.Download(ctx, file.ObjectKey)
+	if err != nil {
+		return nil, "", 0, "", fmt.Errorf("failed to download from storage: %w", err)
+	}
+
+	return reader, file.Name, file.Size, file.MimeType, nil
+}
+
 func (s *FileService) Download(ctx context.Context, fileID uuid.UUID, userID uuid.UUID) (io.ReadCloser, string, int64, error) {
 	file, err := s.fileRepo.GetByID(ctx, fileID, userID)
 	if err != nil {
