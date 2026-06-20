@@ -403,6 +403,11 @@ export default function DashboardPage() {
       <header className={styles.header}>
         <span className={styles.logo}>NuoNetDisk</span>
         <div className={styles.headerActions}>
+          {user?.is_admin && (
+            <span className={styles.linkBtn} onClick={() => navigate('/admin')}>
+              Admin Panel
+            </span>
+          )}
           <span className={styles.userInfo} onClick={() => navigate('/profile')}>
             {user?.avatar_url && (
               <img

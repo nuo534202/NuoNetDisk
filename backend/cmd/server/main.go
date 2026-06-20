@@ -57,12 +57,17 @@ func main() {
 	shareRepo := repository.NewShareRepository(dbPool)
 	refreshTokenRepo := repository.NewRefreshTokenRepository(dbPool)
 
-	authService := service.NewAuthService(userRepo, refreshTokenRepo, jwtService, refreshSvc, cfg.JWTAccessExpiry, cfg.JWTRefreshExpiry)
-	userService := service.NewUserService(userRepo, minioStorage)
+	authService := service.NewAuthService(userRepo, refreshTokenRepo, jwtService, refreshSvc, cfg.JWTAccessExpiry, cfg.JWTRefreshExpiry, cfg.AdminEmail, cfg.AdminPassword)
+	if err := authService.SeedAdmin(context.Background()); err != nil {
+		log.Fatalf("failed to seed admin user: %v", err)
+	}
+	userService := service.NewUserService(userRepo, minioStorage, cfg.AdminEmail)
 	fileService := service.NewFileService(fileRepo, folderRepo, minioStorage, cfg.MaxUploadSize)
 	folderService := service.NewFolderService(folderRepo, fileRepo, minioStorage)
 	shareService := service.NewShareService(shareRepo, fileRepo, folderRepo, cfg.MaxShareTTL)
 	recycleBinService := service.NewRecycleBinService(fileRepo, folderRepo, minioStorage)
+
+	adminService := service.NewAdminService(userRepo, fileRepo, folderRepo, shareRepo, minioStorage, dbPool, cfg.AdminEmail)
 
 	authHandler := handler.NewAuthHandler(authService)
 	userHandler := handler.NewUserHandler(userService)
@@ -70,6 +75,7 @@ func main() {
 	folderHandler := handler.NewFolderHandler(folderService)
 	shareHandler := handler.NewShareHandler(shareService, fileService, folderService)
 	recycleBinHandler := handler.NewRecycleBinHandler(recycleBinService)
+	adminHandler := handler.NewAdminHandler(adminService)
 
 	r := gin.New()
 	middleware.Apply(r, jwtService, cfg.CORSAllowedOrigins, middleware.RateLimitConfig{
@@ -99,44 +105,58 @@ func main() {
 			user.GET("/me/avatar", userHandler.DownloadAvatar)
 		}
 
-		files := api.Group("/files")
+		nonAdmin := api.Group("")
+		nonAdmin.Use(middleware.RequireNonAdmin())
 		{
-			files.GET("", fileHandler.List)
-			files.POST("", fileHandler.Upload)
-			files.GET("/:fileId", fileHandler.GetByID)
-			files.GET("/:fileId/download", fileHandler.Download)
-			files.GET("/:fileId/preview", fileHandler.Preview)
-			files.PATCH("/:fileId", fileHandler.Update)
-			files.DELETE("/:fileId", fileHandler.Delete)
+			files := nonAdmin.Group("/files")
+			{
+				files.GET("", fileHandler.List)
+				files.POST("", fileHandler.Upload)
+				files.GET("/:fileId", fileHandler.GetByID)
+				files.GET("/:fileId/download", fileHandler.Download)
+				files.GET("/:fileId/preview", fileHandler.Preview)
+				files.PATCH("/:fileId", fileHandler.Update)
+				files.DELETE("/:fileId", fileHandler.Delete)
+			}
+
+			folders := nonAdmin.Group("/folders")
+			{
+				folders.POST("", folderHandler.Create)
+				folders.GET("", folderHandler.List)
+				folders.GET("/resolve", folderHandler.ResolveByName)
+				folders.GET("/resolve-by-path", folderHandler.ResolveByPath)
+				folders.GET("/:folderId", folderHandler.GetByID)
+				folders.GET("/:folderId/ancestors", folderHandler.GetAncestors)
+				folders.PATCH("/:folderId", folderHandler.Update)
+				folders.DELETE("/:folderId", folderHandler.Delete)
+			}
+
+			shares := nonAdmin.Group("/shares")
+			{
+				shares.POST("", shareHandler.Create)
+				shares.DELETE("/:shareId", shareHandler.Revoke)
+				shares.GET("/token/:token", shareHandler.AccessByToken)
+			}
+
+			recycleBin := nonAdmin.Group("/recycle-bin")
+			{
+				recycleBin.GET("/files", recycleBinHandler.ListDeletedFiles)
+				recycleBin.GET("/folders", recycleBinHandler.ListDeletedFolders)
+				recycleBin.POST("/restore/file/:fileId", recycleBinHandler.RestoreFile)
+				recycleBin.POST("/restore/folder/:folderId", recycleBinHandler.RestoreFolder)
+				recycleBin.DELETE("/file/:fileId", recycleBinHandler.PermanentDeleteFile)
+				recycleBin.DELETE("/folder/:folderId", recycleBinHandler.PermanentDeleteFolder)
+			}
 		}
 
-		folders := api.Group("/folders")
+		admin := api.Group("/admin")
+		admin.Use(middleware.RequireAdmin())
 		{
-			folders.POST("", folderHandler.Create)
-			folders.GET("", folderHandler.List)
-			folders.GET("/resolve", folderHandler.ResolveByName)
-			folders.GET("/resolve-by-path", folderHandler.ResolveByPath)
-			folders.GET("/:folderId", folderHandler.GetByID)
-			folders.GET("/:folderId/ancestors", folderHandler.GetAncestors)
-			folders.PATCH("/:folderId", folderHandler.Update)
-			folders.DELETE("/:folderId", folderHandler.Delete)
-		}
-
-		shares := api.Group("/shares")
-		{
-			shares.POST("", shareHandler.Create)
-			shares.DELETE("/:shareId", shareHandler.Revoke)
-			shares.GET("/token/:token", shareHandler.AccessByToken)
-		}
-
-		recycleBin := api.Group("/recycle-bin")
-		{
-			recycleBin.GET("/files", recycleBinHandler.ListDeletedFiles)
-			recycleBin.GET("/folders", recycleBinHandler.ListDeletedFolders)
-			recycleBin.POST("/restore/file/:fileId", recycleBinHandler.RestoreFile)
-			recycleBin.POST("/restore/folder/:folderId", recycleBinHandler.RestoreFolder)
-			recycleBin.DELETE("/file/:fileId", recycleBinHandler.PermanentDeleteFile)
-			recycleBin.DELETE("/folder/:folderId", recycleBinHandler.PermanentDeleteFolder)
+			admin.GET("/dashboard", adminHandler.GetDashboard)
+			admin.GET("/users", adminHandler.ListUsers)
+			admin.GET("/users/:userId/avatar", adminHandler.GetUserAvatar)
+			// Creating admin accounts is restricted to the super admin only.
+			admin.POST("/users/register", middleware.RequireSuperAdmin(cfg.AdminEmail), adminHandler.RegisterAdmin)
 		}
 	}
 

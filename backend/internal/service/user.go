@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"mime/multipart"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,37 +19,42 @@ import (
 const maxAvatarSizeBytes = 5 * 1024 * 1024
 
 type UserService struct {
-	userRepo *repository.UserRepository
-	storage  storage.FileStorage
+	userRepo   *repository.UserRepository
+	storage    storage.FileStorage
+	adminEmail string
 }
 
-func NewUserService(userRepo *repository.UserRepository, storage storage.FileStorage) *UserService {
-	return &UserService{userRepo: userRepo, storage: storage}
+func NewUserService(userRepo *repository.UserRepository, storage storage.FileStorage, adminEmail string) *UserService {
+	return &UserService{userRepo: userRepo, storage: storage, adminEmail: adminEmail}
 }
 
 type UserDTO struct {
-	ID          uuid.UUID `json:"id"`
-	Email       string    `json:"email"`
-	DisplayName string    `json:"display_name"`
-	AvatarURL   string    `json:"avatar_url"`
-	Bio         string    `json:"bio"`
-	Gender      string    `json:"gender"`
-	UserHash    string    `json:"user_hash"`
-	CreatedAt   string    `json:"created_at"`
-	UpdatedAt   string    `json:"updated_at"`
+	ID           uuid.UUID `json:"id"`
+	Email        string    `json:"email"`
+	DisplayName  string    `json:"display_name"`
+	AvatarURL    string    `json:"avatar_url"`
+	Bio          string    `json:"bio"`
+	Gender       string    `json:"gender"`
+	UserHash     string    `json:"user_hash"`
+	IsAdmin      bool      `json:"is_admin"`
+	IsSuperAdmin bool      `json:"is_super_admin"`
+	CreatedAt    string    `json:"created_at"`
+	UpdatedAt    string    `json:"updated_at"`
 }
 
-func userToDTO(u *model.User) UserDTO {
+func (s *UserService) userToDTO(u *model.User) UserDTO {
 	dto := UserDTO{
-		ID:          u.ID,
-		Email:       u.Email,
-		DisplayName: u.DisplayName,
-		AvatarURL:   u.AvatarURL,
-		Bio:         u.Bio,
-		Gender:      u.Gender,
-		UserHash:    auth.UserIDToHash(u.ID),
-		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   u.UpdatedAt.Format(time.RFC3339),
+		ID:           u.ID,
+		Email:        u.Email,
+		DisplayName:  u.DisplayName,
+		AvatarURL:    u.AvatarURL,
+		Bio:          u.Bio,
+		Gender:       u.Gender,
+		UserHash:     auth.UserIDToHash(u.ID),
+		IsAdmin:      u.IsAdmin,
+		IsSuperAdmin: s.adminEmail != "" && strings.EqualFold(u.Email, s.adminEmail),
+		CreatedAt:    u.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:    u.UpdatedAt.Format(time.RFC3339),
 	}
 	if u.AvatarURL != "" {
 		dto.AvatarURL = "/api/v1/user/me/avatar"
@@ -62,7 +68,7 @@ func (s *UserService) GetMe(ctx context.Context, userID uuid.UUID) (*UserDTO, er
 		return nil, err
 	}
 
-	dto := userToDTO(user)
+	dto := s.userToDTO(user)
 	return &dto, nil
 }
 
@@ -96,7 +102,7 @@ func (s *UserService) UpdateMe(ctx context.Context, userID uuid.UUID, input Upda
 		return nil, err
 	}
 
-	dto := userToDTO(user)
+	dto := s.userToDTO(user)
 	return &dto, nil
 }
 
@@ -139,7 +145,7 @@ func (s *UserService) UpdateAvatar(ctx context.Context, userID uuid.UUID, fileHe
 		s.storage.Delete(ctx, oldKey)
 	}
 
-	dto := userToDTO(user)
+	dto := s.userToDTO(user)
 	return &dto, nil
 }
 

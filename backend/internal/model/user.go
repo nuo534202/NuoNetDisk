@@ -14,6 +14,7 @@ type User struct {
 	AvatarURL    string    `json:"avatar_url"`
 	Bio          string    `json:"bio"`
 	Gender       string    `json:"gender"`
+	IsAdmin      bool      `json:"is_admin"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }

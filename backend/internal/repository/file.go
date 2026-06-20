@@ -226,3 +226,21 @@ func (r *FileRepository) Restore(ctx context.Context, id uuid.UUID, userID uuid.
 	}
 	return nil
 }
+
+func (r *FileRepository) Count(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM files WHERE is_deleted = false").Scan(&count)
+	return count, err
+}
+
+func (r *FileRepository) TotalSize(ctx context.Context) (int64, error) {
+	var total int64
+	err := r.pool.QueryRow(ctx, "SELECT COALESCE(SUM(size), 0) FROM files WHERE is_deleted = false").Scan(&total)
+	return total, err
+}
+
+func (r *FileRepository) CountDeleted(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM files WHERE is_deleted = true").Scan(&count)
+	return count, err
+}

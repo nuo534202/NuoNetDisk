@@ -299,3 +299,9 @@ func (r *FolderRepository) IsDescendant(ctx context.Context, folderID, ancestorI
 	}
 	return exists, nil
 }
+
+func (r *FolderRepository) Count(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM folders WHERE is_deleted = false").Scan(&count)
+	return count, err
+}

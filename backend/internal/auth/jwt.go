@@ -19,8 +19,9 @@ func UserIDToHash(userID uuid.UUID) string {
 }
 
 type Claims struct {
-	UserID uuid.UUID `json:"user_id"`
-	Email  string    `json:"email"`
+	UserID  uuid.UUID `json:"user_id"`
+	Email   string    `json:"email"`
+	IsAdmin bool      `json:"is_admin"`
 	jwt.RegisteredClaims
 }
 
@@ -37,10 +38,15 @@ func NewJWTService(secret string, expiry time.Duration) *JWTService {
 }
 
 func (s *JWTService) GenerateAccessToken(userID uuid.UUID, email string) (string, error) {
+	return s.GenerateAccessTokenWithAdmin(userID, email, false)
+}
+
+func (s *JWTService) GenerateAccessTokenWithAdmin(userID uuid.UUID, email string, isAdmin bool) (string, error) {
 	now := time.Now()
 	claims := Claims{
-		UserID: userID,
-		Email:  email,
+		UserID:  userID,
+		Email:   email,
+		IsAdmin: isAdmin,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID.String(),
 			IssuedAt:  jwt.NewNumericDate(now),

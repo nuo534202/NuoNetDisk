@@ -8,12 +8,16 @@ import DashboardPage from "./pages/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import RecycleBinPage from "./pages/RecycleBinPage";
 import SharedPage from "./pages/SharedPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminUserManagementPage from "./pages/AdminUserManagementPage";
+import AdminCreateAdminPage from "./pages/AdminCreateAdminPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const location = window.location.pathname;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -23,18 +27,40 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
     return <Navigate to="/login" replace />;
   }
 
+  if (user?.is_admin && location !== "/profile") {
+    return <Navigate to="/admin" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated, isLoading, user } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!user?.is_admin) {
+    return <Navigate to="/" replace />;
+  }
+
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={user?.is_admin ? "/admin" : "/"} replace />;
   }
 
   return <>{children}</>;
@@ -44,6 +70,7 @@ function HomeRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
   if (isLoading) return <div>Loading...</div>;
   if (!isAuthenticated || !user) return <Navigate to="/login" replace />;
+  if (user.is_admin) return <Navigate to="/admin" replace />;
   return <Navigate to={`/${user.user_hash}`} replace />;
 }
 
@@ -88,6 +115,30 @@ function AppRoutes() {
           <PublicRoute>
             <RegisterPage />
           </PublicRoute>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminDashboardPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <AdminUserManagementPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/create-admin"
+        element={
+          <AdminRoute>
+            <AdminCreateAdminPage />
+          </AdminRoute>
         }
       />
       <Route

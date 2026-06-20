@@ -61,6 +61,12 @@ components:
         user_hash:
           type: string
           description: 10-character hex hash derived from user UUID, used in URL paths
+        is_admin:
+          type: boolean
+          description: Whether the account has admin privileges
+        is_super_admin:
+          type: boolean
+          description: Whether the account is the configured super admin (env ADMIN_EMAIL). Only super admins can create admin accounts.
         created_at:
           type: string
           format: date-time
@@ -1375,6 +1381,284 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/dashboard:
+    get:
+      tags:
+        - Admin
+      summary: Get admin dashboard with system health and stats
+      operationId: getAdminDashboard
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Admin dashboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_info:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      version:
+                        type: string
+                      uptime:
+                        type: string
+                      go_version:
+                        type: string
+                  services:
+                    type: object
+                    properties:
+                      database:
+                        type: boolean
+                      minio:
+                        type: boolean
+                      backend:
+                        type: boolean
+                  system:
+                    type: object
+                    properties:
+                      num_goroutine:
+                        type: integer
+                      allocated_mb:
+                        type: number
+                      total_allocated_mb:
+                        type: number
+                      sys_mb:
+                        type: number
+                      num_gc:
+                        type: integer
+                  stats:
+                    type: object
+                    properties:
+                      total_users:
+                        type: integer
+                      total_files:
+                        type: integer
+                      total_folders:
+                        type: integer
+                      total_storage_bytes:
+                        type: integer
+                      active_shares:
+                        type: integer
+                      recycle_bin_count:
+                        type: integer
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/users:
+    get:
+      tags:
+        - Admin
+      summary: List all users (admin only)
+      operationId: listUsers
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: date_from
+          in: query
+          description: Inclusive lower bound on user created_at (ISO date, YYYY-MM-DD).
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: Inclusive upper bound on user created_at (ISO date, YYYY-MM-DD).
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Paginated user list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        email:
+                          type: string
+                        display_name:
+                          type: string
+                        avatar_url:
+                          type: string
+                          description: URL path to fetch the user's avatar (admin-only endpoint), empty if no avatar set.
+                        bio:
+                          type: string
+                        gender:
+                          type: string
+                        is_admin:
+                          type: boolean
+                        is_super_admin:
+                          type: boolean
+                          description: True if this user is the configured super admin (env ADMIN_EMAIL).
+                        created_at:
+                          type: string
+                          format: date-time
+                        updated_at:
+                          type: string
+                          format: date-time
+                  total:
+                    type: integer
+                  offset:
+                    type: integer
+                  limit:
+                    type: integer
+                  has_more:
+                    type: boolean
+        "403":
+          description: Forbidden
+
+  /admin/users/{userId}/avatar:
+    get:
+      tags:
+        - Admin
+      summary: Download a specific user's avatar (admin only)
+      operationId: getAdminUserAvatar
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: token
+          in: query
+          description: Access token (alternative to Authorization header, useful for img src).
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Avatar image content streamed inline with correct MIME type
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found or no avatar set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/users/register:
+    post:
+      tags:
+        - Admin
+      summary: Create a new admin account (super admin only)
+      description: |
+        Only the super admin account (configured via ADMIN_EMAIL) can create
+        new admin accounts. Regular admins receive a 403.
+      operationId: registerAdmin
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        "201":
+          description: Admin account created
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - super admin access required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/users/role:
+    patch:
+      tags:
+        - Admin
+      summary: Set or remove admin role for a user
+      operationId: setAdminRole
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - is_admin
+              properties:
+                user_id:
+                  type: string
+                  format: uuid
+                is_admin:
+                  type: boolean
+      responses:
+        "204":
+          description: Role updated
+        "400":
+          description: Invalid input
+        "403":
+          description: Forbidden
 
   /recycle-bin/folder/{folderId}:
     delete:

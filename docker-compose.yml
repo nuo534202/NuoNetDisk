@@ -69,6 +69,8 @@ services:
       JWT_REFRESH_EXPIRY: "720h"
       MAX_UPLOAD_SIZE: "104857600"
       LOG_LEVEL: "debug"
+      ADMIN_EMAIL: "${ADMIN_EMAIL:-admin@example.com}"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD:-admin123}"
     ports:
       - "${SERVER_PORT:-8080}:8080"
     depends_on:

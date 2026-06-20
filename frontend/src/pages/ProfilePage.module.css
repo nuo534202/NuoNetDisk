@@ -18,6 +18,24 @@
   font-size: 1.1rem;
   font-weight: 600;
   color: var(--ink);
+  letter-spacing: -0.3px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.adminBadge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--badge-violet);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .headerActions {

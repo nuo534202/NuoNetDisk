@@ -80,6 +80,7 @@ func (m *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 
 		c.Set("user_id", claims.UserID.String())
 		c.Set("email", claims.Email)
+		c.Set("is_admin", claims.IsAdmin)
 		c.Next()
 	}
 }

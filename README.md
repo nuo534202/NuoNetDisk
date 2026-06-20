@@ -34,9 +34,31 @@ Open **http://localhost:3000** in your browser. The first startup may take a min
 
 | Service | Access | Purpose |
 |---|---|---|
-| Frontend | http://localhost:3000 | Web interface |
+| Frontend & Admin Panel | http://localhost:3000 | Web interface, Admin Panel |
 | Backend API | http://localhost:8080 | REST API |
 | MinIO Console | http://localhost:9001 | Object storage admin |
+
+## Admin Panel
+
+Access the admin panel at **http://localhost:3000** after signing in with an admin account.
+
+### Default Admin Account
+
+An admin account is automatically created on first startup and cannot be modified. Use these credentials to sign in:
+
+| Setting | Default (dev) | Note |
+|---|---|---|
+| Admin email | `admin@example.com` | Set via `ADMIN_EMAIL` in `.env` |
+| Admin password | `admin123` | Set via `ADMIN_PASSWORD` in `.env` |
+
+After signing in at http://localhost:3000/login, click **Admin Panel** in the top navigation bar to access the dashboard.
+
+The admin panel provides:
+- **Project info** — Application name, version, uptime, Go runtime version.
+- **Service health** — Live status indicators for PostgreSQL, MinIO, and the backend server.
+- **System resources** — Goroutine count, memory allocation, GC cycles.
+- **Storage statistics** — Total users, files, folders, storage usage, active shares, recycle bin count.
+- **User management** — View all registered users, promote or revoke admin roles.
 
 ## Getting started
 

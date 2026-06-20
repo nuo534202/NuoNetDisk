@@ -63,6 +63,12 @@ func (r *ShareRepository) GetByID(ctx context.Context, id uuid.UUID, userID uuid
 	return link, nil
 }
 
+func (r *ShareRepository) CountActive(ctx context.Context) (int, error) {
+	var count int
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM share_links WHERE is_revoked = false AND (expires_at IS NULL OR expires_at > NOW())").Scan(&count)
+	return count, err
+}
+
 func (r *ShareRepository) Revoke(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	query := `UPDATE share_links SET is_revoked = TRUE WHERE id = $1 AND user_id = $2 AND is_revoked = FALSE`
 	tag, err := r.pool.Exec(ctx, query, id, userID)

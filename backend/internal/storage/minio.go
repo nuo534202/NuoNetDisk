@@ -15,6 +15,7 @@ type FileStorage interface {
 	Stat(ctx context.Context, objectKey string) (size int64, contentType string, err error)
 	Delete(ctx context.Context, objectKey string) error
 	Copy(ctx context.Context, srcKey, dstKey string) error
+	HealthCheck(ctx context.Context) error
 }
 
 type ObjectInfo struct {
@@ -84,6 +85,11 @@ func (s *MinioStorage) Delete(ctx context.Context, objectKey string) error {
 		return fmt.Errorf("failed to delete object: %w", err)
 	}
 	return nil
+}
+
+func (s *MinioStorage) HealthCheck(ctx context.Context) error {
+	_, err := s.client.BucketExists(ctx, s.bucket)
+	return err
 }
 
 func (s *MinioStorage) Copy(ctx context.Context, srcKey, dstKey string) error {

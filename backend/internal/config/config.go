@@ -31,6 +31,9 @@ type Config struct {
 	RecycleBinExpiry          time.Duration
 	RecycleBinCleanupInterval time.Duration
 
+	AdminEmail    string
+	AdminPassword string
+
 	CORSAllowedOrigins []string
 
 	LogLevel string
@@ -51,6 +54,8 @@ func Load() (*Config, error) {
 		MaxUploadSize:             getEnvInt64("MAX_UPLOAD_SIZE", 100*1024*1024),
 		RateLimitAuth:             getEnvInt("RATE_LIMIT_AUTH", 10),
 		RateLimitGeneral:          getEnvInt("RATE_LIMIT_GENERAL", 100),
+		AdminEmail:                os.Getenv("ADMIN_EMAIL"),
+		AdminPassword:             getEnv("ADMIN_PASSWORD", "admin123"),
 		MaxShareTTL:               getEnvDuration("MAX_SHARE_TTL", 168*time.Hour),
 		RecycleBinExpiry:          getEnvDuration("RECYCLE_BIN_EXPIRY", 720*time.Hour),
 		RecycleBinCleanupInterval: getEnvDuration("RECYCLE_BIN_CLEANUP_INTERVAL", 24*time.Hour),

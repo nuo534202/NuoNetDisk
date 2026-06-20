@@ -92,9 +92,12 @@ export default function ProfilePage() {
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <span className={styles.logo}>Profile</span>
+        <div className={styles.headerLeft}>
+          <span className={styles.logo}>NuoNetDisk</span>
+          {user?.is_admin && <span className={styles.adminBadge}>Admin</span>}
+        </div>
         <div className={styles.headerActions}>
-          <Link to={`/${user?.user_hash}`} className={styles.linkBtn}>Back to files</Link>
+          <Link to={user?.is_admin ? "/admin" : `/${user?.user_hash}`} className={styles.linkBtn}>Back</Link>
           <button className={styles.signOutBtn} onClick={logout}>Sign out</button>
         </div>
       </header>

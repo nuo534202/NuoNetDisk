@@ -20,6 +20,8 @@ type AuthService struct {
 	refreshSvc       *auth.RefreshTokenService
 	accessExpiry     time.Duration
 	refreshExpiry    time.Duration
+	adminEmail       string
+	adminPassword    string
 }
 
 func NewAuthService(
@@ -29,6 +31,8 @@ func NewAuthService(
 	refreshSvc *auth.RefreshTokenService,
 	accessExpiry time.Duration,
 	refreshExpiry time.Duration,
+	adminEmail string,
+	adminPassword string,
 ) *AuthService {
 	return &AuthService{
 		userRepo:         userRepo,
@@ -37,7 +41,41 @@ func NewAuthService(
 		refreshSvc:       refreshSvc,
 		accessExpiry:     accessExpiry,
 		refreshExpiry:    refreshExpiry,
+		adminEmail:       adminEmail,
+		adminPassword:    adminPassword,
 	}
+}
+
+func (s *AuthService) SeedAdmin(ctx context.Context) error {
+	if s.adminEmail == "" || s.adminPassword == "" {
+		return nil
+	}
+
+	hash, err := auth.HashPassword(s.adminPassword)
+	if err != nil {
+		return err
+	}
+
+	existing, err := s.userRepo.GetByEmail(ctx, s.adminEmail)
+	if err != nil && !errors.Is(err, model.ErrNotFound) {
+		return err
+	}
+	if existing != nil {
+		if !existing.IsAdmin {
+			if err := s.userRepo.SetAdmin(ctx, existing.ID, true); err != nil {
+				return err
+			}
+		}
+		return s.userRepo.UpdatePassword(ctx, existing.ID, hash)
+	}
+
+	user := &model.User{
+		Email:        s.adminEmail,
+		PasswordHash: hash,
+		DisplayName:  "Admin",
+		IsAdmin:      true,
+	}
+	return s.userRepo.Create(ctx, user)
 }
 
 type AuthRegisterInput struct {
@@ -106,7 +144,7 @@ func (s *AuthService) Login(ctx context.Context, input AuthLoginInput) (*TokenPa
 		return nil, nil, model.ErrUnauthenticated
 	}
 
-	pair, err := s.generateTokenPair(ctx, user.ID, user.Email)
+	pair, err := s.generateTokenPair(ctx, user.ID, user.Email, user.IsAdmin)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -153,7 +191,7 @@ func (s *AuthService) Refresh(ctx context.Context, refreshToken string) (*TokenP
 		return nil, err
 	}
 
-	return s.generateTokenPair(ctx, user.ID, user.Email)
+	return s.generateTokenPair(ctx, user.ID, user.Email, user.IsAdmin)
 }
 
 func (s *AuthService) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
@@ -182,8 +220,8 @@ func (s *AuthService) Logout(ctx context.Context, userID uuid.UUID, refreshToken
 	return s.refreshTokenRepo.MarkRevoked(ctx, stored.ID)
 }
 
-func (s *AuthService) generateTokenPair(ctx context.Context, userID uuid.UUID, email string) (*TokenPair, error) {
-	accessToken, err := s.jwtService.GenerateAccessToken(userID, email)
+func (s *AuthService) generateTokenPair(ctx context.Context, userID uuid.UUID, email string, isAdmin bool) (*TokenPair, error) {
+	accessToken, err := s.jwtService.GenerateAccessTokenWithAdmin(userID, email, isAdmin)
 	if err != nil {
 		return nil, err
 	}
