@@ -58,7 +58,7 @@ func RespondServiceError(c *gin.Context, err error) {
 	case errors.Is(err, model.ErrTokenRevoked):
 		RespondError(c, http.StatusUnauthorized, "TOKEN_REVOKED", "The token has been revoked")
 	case errors.Is(err, model.ErrUnauthenticated):
-		RespondError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Authentication is required")
+		RespondError(c, http.StatusUnauthorized, "UNAUTHENTICATED", "Invalid email or password")
 	default:
 		RespondError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "An internal error occurred")
 	}
