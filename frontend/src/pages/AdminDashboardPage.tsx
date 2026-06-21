@@ -112,7 +112,7 @@ export default function AdminDashboardPage() {
               Create Admin
             </span>
           )}
-          <span className={styles.signOutBtn} onClick={logout}>Sign out</span>
+          <span className={styles.signOutBtn} onClick={logout}>Sign Out</span>
         </div>
       </header>
 

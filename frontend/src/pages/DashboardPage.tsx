@@ -418,18 +418,18 @@ export default function DashboardPage() {
             )}
             {user?.display_name}
           </span>
-          <button className={styles.logoutBtn} onClick={logout}>Sign out</button>
+          <button className={styles.logoutBtn} onClick={logout}>Sign Out</button>
         </div>
       </header>
 
       <div className={styles.toolbar}>
         <button className={styles.toolbarBtn} onClick={() => setShowCreateDialog(true)}>
-          + New folder
+          + New Folder
         </button>
         <button className={styles.toolbarBtn} onClick={() => fileInputRef.current?.click()}>
-          {uploading ? "Uploading..." : "Upload file"}
+          {uploading ? "Uploading..." : "Upload File"}
         </button>
-        <a href="/recycle-bin" className={styles.recycleBinBtn}>Recycle bin</a>
+        <a href="/recycle-bin" className={styles.recycleBinBtn}>Recycle Bin</a>
         <input
           ref={fileInputRef}
           className={styles.hiddenInput}
@@ -546,14 +546,14 @@ export default function DashboardPage() {
       {showCreateDialog && (
         <div className={styles.dialog} onClick={() => setShowCreateDialog(false)}>
           <div className={styles.dialogCard} onClick={(e) => e.stopPropagation()}>
-            <h2 className={styles.dialogTitle}>New folder</h2>
+            <h2 className={styles.dialogTitle}>New Folder</h2>
             <form onSubmit={handleCreateFolder}>
               <input
                 className={styles.dialogInput}
                 type="text"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
-                placeholder="Folder name"
+                placeholder="Folder Name"
                 autoFocus
               />
               <div className={styles.dialogActions}>

@@ -98,13 +98,13 @@ export default function ProfilePage() {
         </div>
         <div className={styles.headerActions}>
           <Link to={user?.is_admin ? "/admin" : `/${user?.user_hash}`} className={styles.linkBtn}>Back</Link>
-          <button className={styles.signOutBtn} onClick={logout}>Sign out</button>
+          <button className={styles.signOutBtn} onClick={logout}>Sign Out</button>
         </div>
       </header>
 
       <div className={styles.content}>
         <div className={styles.section}>
-          <h1 className={styles.sectionTitle}>Account settings</h1>
+          <h1 className={styles.sectionTitle}>Account Settings</h1>
 
           <div className={styles.field}>
             <span className={styles.label}>Email</span>
@@ -184,7 +184,7 @@ export default function ProfilePage() {
               type="submit"
               disabled={saving || !hasChanges}
             >
-              {saving ? "Saving..." : "Save changes"}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
 
             {error && <p className={styles.error}>{error}</p>}

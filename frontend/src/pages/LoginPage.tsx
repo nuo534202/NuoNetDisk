@@ -28,7 +28,7 @@ export default function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Sign in</h1>
+        <h1 className={styles.title}>Sign In</h1>
         <p className={styles.subtitle}>Welcome back to NuoNetDisk</p>
 
         <form onSubmit={handleSubmit}>
@@ -62,12 +62,12 @@ export default function LoginPage() {
           {error && <div className={styles.error}>{error}</div>}
 
           <button className={styles.submit} type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Signing in..." : "Sign in"}
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         <p className={styles.footer}>
-          Don&apos;t have an account? <Link to="/register">Create one</Link>
+          Don&apos;t have an account? <Link to="/register">Create One</Link>
         </p>
       </div>
     </div>

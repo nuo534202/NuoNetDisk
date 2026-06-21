@@ -42,7 +42,7 @@ export default function RegisterPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h1 className={styles.title}>Create account</h1>
+        <h1 className={styles.title}>Create Account</h1>
         <p className={styles.subtitle}>Get started with NuoNetDisk</p>
 
         <form onSubmit={handleSubmit}>
@@ -90,12 +90,12 @@ export default function RegisterPage() {
           {error && <div className={styles.error}>{error}</div>}
 
           <button className={styles.submit} type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating account..." : "Create account"}
+            {isSubmitting ? "Creating account..." : "Create Account"}
           </button>
         </form>
 
         <p className={styles.footer}>
-          Already have an account? <Link to="/login">Sign in</Link>
+          Already have an account? <Link to="/login">Sign In</Link>
         </p>
       </div>
     </div>
