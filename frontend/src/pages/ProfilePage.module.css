@@ -1,0 +1,243 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--canvas);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--hairline);
+  background: var(--canvas);
+}
+
+.logo {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.3px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.adminBadge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--badge-violet);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.linkBtn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  transition: background 0.15s;
+}
+
+.linkBtn:hover {
+  background: var(--surface-hover);
+  text-decoration: none;
+}
+
+.signOutBtn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  color: var(--error);
+  transition: background 0.15s;
+}
+
+.signOutBtn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  text-decoration: none;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xl) var(--space-lg);
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.section {
+  background: var(--surface-card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.sectionTitle {
+  color: var(--ink);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
+}
+
+.field {
+  margin-bottom: var(--space-md);
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  border-color: var(--ink);
+}
+
+.readonlyValue {
+  font-size: 0.9rem;
+  padding: 0.6rem 0;
+  color: var(--muted);
+}
+
+.saveBtn {
+  width: 100%;
+  padding: 0.6rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--on-primary);
+  transition: background 0.15s;
+}
+
+.saveBtn:hover {
+  background: var(--primary-active);
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.avatarPreview {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-md);
+}
+
+.avatarImg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--hairline);
+}
+
+.textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.textarea:focus {
+  border-color: var(--ink);
+}
+
+.select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s;
+  cursor: pointer;
+  appearance: auto;
+}
+
+.select:focus {
+  border-color: var(--ink);
+}
+
+.avatarSection {
+  margin-bottom: var(--space-md);
+}
+
+.fileInput {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 8px 0;
+  color: var(--ink);
+}
+
+.fileInput::file-selector-button {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--ink);
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background 0.15s;
+}
+
+.fileInput::file-selector-button:hover {
+  background: var(--surface-hover);
+}
+
+.message {
+  margin-top: var(--space-sm);
+  font-size: 0.85rem;
+}
+
+.error {
+  composes: message;
+  color: var(--error);
+}
+
+.success {
+  composes: message;
+  color: var(--success);
+}
